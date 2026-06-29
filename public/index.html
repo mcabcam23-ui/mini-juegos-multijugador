@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Arcade · Minijuegos Multijugador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/game-themes.css" />
+  <link rel="stylesheet" href="/css/game-fit.css" />
+  <link rel="stylesheet" href="/css/new-games.css" />
+  <link rel="stylesheet" href="/css/calm-games.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+
+  <header class="topbar">
+    <button class="brand" id="brand">
+      <span class="brand-icon">🎮</span>
+      <span class="brand-text">Arcade<span class="brand-dot">.</span></span>
+    </button>
+    <div class="topbar-right">
+      <button class="icon-btn" id="sound-toggle" title="Sonido">🔊</button>
+      <div class="conn" id="conn"><span class="conn-dot"></span><span id="conn-text">Conectando…</span></div>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- ===== HOME ===== -->
+    <section class="screen active" id="screen-home">
+      <div class="hero">
+        <span class="hero-badge">✨ Multijugador en tiempo real</span>
+        <h1 class="hero-title">Juega con tus amigos<br/><span class="grad-text">sin registrarte</span></h1>
+        <p class="hero-sub">Crea una sala, comparte el código y compite al instante. Tablero, chat, reacciones y marcador, todo en tu navegador.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="home-play">🎲 Elegir juego</button>
+          <button class="btn btn-ghost" id="home-join">Unirme con un código</button>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-num" id="stat-games">9</span><span class="stat-lbl">Juegos</span></div>
+          <div class="stat"><span class="stat-num">∞</span><span class="stat-lbl">Partidas</span></div>
+          <div class="stat"><span class="stat-num">0€</span><span class="stat-lbl">Gratis</span></div>
+          <div class="stat"><span class="stat-num">0</span><span class="stat-lbl">Registros</span></div>
+        </div>
+      </div>
+
+      <div class="section-head" id="games"><h2>🎯 Elige tu juego</h2><p>Pulsa una tarjeta para empezar. Comparte el código de la sala con tus amigos.</p></div>
+      <div class="games-grid" id="games-grid"></div>
+
+      <div class="section-head"><h2>⚡ Cómo funciona</h2></div>
+      <div class="steps">
+        <div class="step"><span class="step-num">1</span><h3>Elige un juego</h3><p>Desde el tres en raya hasta el tocado y hundido. Tú decides.</p></div>
+        <div class="step"><span class="step-num">2</span><h3>Comparte el código</h3><p>Recibes un código de 4 letras y un enlace para invitar a quien quieras.</p></div>
+        <div class="step"><span class="step-num">3</span><h3>¡A jugar!</h3><p>Cuando estéis listos, el anfitrión empieza. Todo se sincroniza al instante.</p></div>
+      </div>
+
+      <div class="section-head"><h2>🌟 Por qué te va a encantar</h2></div>
+      <div class="features">
+        <div class="feature"><span class="feat-ico">🚫</span><h3>Sin cuentas</h3><p>Nada de emails ni contraseñas. Entras y juegas.</p></div>
+        <div class="feature"><span class="feat-ico">💬</span><h3>Chat y reacciones</h3><p>Habla con tu sala y lanza emojis en mitad de la partida.</p></div>
+        <div class="feature"><span class="feat-ico">🏆</span><h3>Marcador de series</h3><p>Se cuentan las victorias de cada uno en la sala.</p></div>
+        <div class="feature"><span class="feat-ico">📱</span><h3>Móvil y escritorio</h3><p>Diseño responsive que funciona en cualquier pantalla.</p></div>
+        <div class="feature"><span class="feat-ico">🔁</span><h3>Revancha al instante</h3><p>Repetid sin salir, o cambiad de juego desde el lobby.</p></div>
+        <div class="feature"><span class="feat-ico">🔒</span><h3>Sin trampas</h3><p>Toda la lógica se valida en el servidor.</p></div>
+      </div>
+
+      <footer class="site-footer">
+        <span class="brand-icon">🎮</span>
+        <p>Arcade · Minijuegos multijugador · Hecho para jugar con amigos.</p>
+      </footer>
+    </section>
+
+    <!-- ===== UNIRSE CON CÓDIGO ===== -->
+    <section class="screen" id="screen-setup">
+      <button class="back-link" data-go="home">← Volver</button>
+      <div class="card setup-card">
+        <h2 class="setup-title">Unirse a una sala</h2>
+        <div class="field">
+          <label for="nickname">Tu nombre</label>
+          <input id="nickname" maxlength="16" placeholder="Escribe tu apodo…" autocomplete="off" />
+        </div>
+        <p class="muted setup-join-lead">Introduce el código de 4 letras que te compartió quien creó la sala.</p>
+        <div class="field">
+          <label for="code-input">Código de la sala</label>
+          <input id="code-input" class="code-field" maxlength="4" placeholder="ABCD" autocomplete="off" />
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-join">Unirme a la sala</button>
+      </div>
+    </section>
+
+    <!-- ===== LOBBY ===== -->
+    <section class="screen" id="screen-lobby">
+      <button class="back-link" id="leave-lobby">← Salir de la sala</button>
+      <div class="card lobby-card">
+        <div class="lobby-head">
+          <div class="lobby-game-row">
+            <div class="lobby-game" id="lobby-game"></div>
+            <button class="btn btn-ghost lobby-change" id="btn-change-game">🔀 Cambiar juego</button>
+          </div>
+          <div class="code-box">
+            <span class="code-label">Código de sala</span>
+            <button class="code-value" id="code-value" title="Copiar código">
+              <span id="code-text">----</span>
+              <span class="copy-ico">⧉</span>
+            </button>
+            <button class="share-link" id="share-link">Copiar enlace de invitación</button>
+          </div>
+        </div>
+        <div class="players-block">
+          <div class="players-head">
+            <h3>Jugadores</h3>
+            <span class="players-count" id="players-count"></span>
+          </div>
+          <ul class="players-list" id="players-list"></ul>
+        </div>
+        <div class="bs-mode-picker card-inner" id="bs-mode-picker" hidden>
+          <span class="cap-label">Modo de juego — Tocado y Hundido</span>
+          <div class="bs-mode-options">
+            <button type="button" class="bs-mode-opt" data-mode="digital">🖥️ Digital</button>
+            <button type="button" class="bs-mode-opt" data-mode="verbal">🗣️ Verbal</button>
+          </div>
+          <p class="bs-mode-hint" id="bs-mode-hint">Colocación y disparos automáticos en la app.</p>
+        </div>
+        <div class="lobby-controls" id="lobby-controls" hidden>
+          <div class="cap-control" id="cap-control" hidden>
+            <span class="cap-label">Máximo de jugadores</span>
+            <div class="stepper">
+              <button class="step-btn" id="cap-minus" aria-label="Menos">−</button>
+              <span class="cap-value" id="cap-value">2</span>
+              <button class="step-btn" id="cap-plus" aria-label="Más">+</button>
+            </div>
+          </div>
+          <div class="bot-buttons" id="bot-buttons">
+            <button class="btn btn-ghost btn-sm" id="btn-add-bot">🤖 Añadir bot</button>
+            <button class="btn btn-ghost btn-sm" id="btn-fill-bots">🤖 Rellenar con bots</button>
+          </div>
+        </div>
+        <div class="lobby-chat" id="lobby-chat">
+          <div class="lobby-chat-head"><span>💬 Chat de la sala</span></div>
+          <div class="lobby-chat-msgs" id="lobby-chat-msgs"></div>
+          <form class="lobby-chat-form" id="lobby-chat-form">
+            <input id="lobby-chat-input" maxlength="200" placeholder="Escribe un mensaje…" autocomplete="off" />
+            <button class="btn btn-primary" type="submit">➤</button>
+          </form>
+        </div>
+        <div class="lobby-foot">
+          <p class="hint" id="lobby-hint"></p>
+          <button class="btn btn-primary btn-block" id="btn-start">Empezar partida</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== JUEGO ===== -->
+    <section class="screen" id="screen-game">
+      <div class="game-topbar">
+        <button class="back-link" id="leave-game">← Salir</button>
+        <div class="game-title" id="game-title"></div>
+        <div class="game-code" id="game-code-pill"></div>
+      </div>
+      <div class="turn-banner" id="turn-banner"></div>
+      <div class="game-stage" id="game-stage"></div>
+    </section>
+  </main>
+
+  <!-- Dock de sala: chat + reacciones -->
+  <div class="room-dock" id="room-dock" hidden>
+    <div class="reaction-bar" id="reaction-bar">
+      <button data-emoji="😂">😂</button>
+      <button data-emoji="😮">😮</button>
+      <button data-emoji="🔥">🔥</button>
+      <button data-emoji="👏">👏</button>
+      <button data-emoji="😎">😎</button>
+      <button data-emoji="😭">😭</button>
+      <button data-emoji="❤️">❤️</button>
+      <button data-emoji="👍">👍</button>
+    </div>
+    <button class="dock-btn" id="chat-toggle" title="Chat">💬<span class="unread" id="chat-unread" hidden>0</span></button>
+  </div>
+
+  <!-- Panel de chat -->
+  <aside class="chat-panel" id="chat-panel">
+    <div class="chat-head"><h3>💬 Chat de la sala</h3><button class="icon-btn" id="chat-close">✕</button></div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <form class="chat-form" id="chat-form">
+      <input id="chat-input" maxlength="200" placeholder="Escribe un mensaje…" autocomplete="off" />
+      <button class="btn btn-primary" type="submit">➤</button>
+    </form>
+  </aside>
+
+  <!-- Selector de juego (modal) -->
+  <div class="overlay" id="game-picker">
+    <div class="picker-card">
+      <div class="picker-head"><h2>🔀 Cambiar juego</h2><button class="icon-btn" id="picker-close">✕</button></div>
+      <div class="picker-grid" id="picker-grid"></div>
+    </div>
+  </div>
+
+  <!-- Capa de reacciones flotantes -->
+  <div class="reactions-layer" id="reactions-layer" aria-hidden="true"></div>
+
+  <!-- Overlay fin de partida -->
+  <div class="overlay" id="overlay">
+    <div class="overlay-card">
+      <div class="overlay-emoji" id="overlay-emoji">🏆</div>
+      <h2 id="overlay-title">¡Fin!</h2>
+      <p id="overlay-sub"></p>
+      <div class="series-board" id="series-board"></div>
+      <div class="overlay-actions">
+        <button class="btn btn-primary" id="btn-rematch">Revancha</button>
+        <button class="btn btn-ghost" id="btn-lobby">Volver al lobby</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toast-wrap"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

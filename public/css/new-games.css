@@ -1,0 +1,116 @@
+/* ===== Nuevos juegos: Reversi, Código Secreto, Simon, Word Rush, Dados Duelo ===== */
+
+/* --- Reversi --- */
+.rev-wrap { width: min(96vw, 420px); text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.rev-head { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.rev-board-wrap { padding: 8px; background: linear-gradient(145deg, #14532d, #052e16); border-radius: 14px; border: 3px solid #22c55e; box-shadow: 0 12px 36px rgba(0,0,0,.45); }
+.rev-board { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; width: min(88vw, 340px); aspect-ratio: 1; }
+.rev-cell {
+  aspect-ratio: 1; border-radius: 6px; border: 1px solid rgba(255,255,255,.08);
+  background: rgba(21,128,61,.45); display: grid; place-items: center;
+  font-size: clamp(.9rem, 3vw, 1.2rem); padding: 0; transition: background .15s, transform .12s;
+}
+.rev-cell.black { color: #0f172a; text-shadow: 0 1px 0 rgba(255,255,255,.25); }
+.rev-cell.white { color: #f8fafc; text-shadow: 0 0 8px rgba(255,255,255,.4); }
+.rev-cell.legal:not(:disabled) { background: rgba(74,222,128,.35); cursor: pointer; box-shadow: inset 0 0 0 2px #4ade80; }
+.rev-cell.legal:not(:disabled):hover { transform: scale(1.06); }
+.rev-cell.last { box-shadow: inset 0 0 0 2px #fbbf24; }
+.rev-hint { font-weight: 600; min-height: 1.2em; color: var(--muted); }
+.rev-pass { margin-top: 4px; }
+
+/* --- Mastermind --- */
+.mm-wrap { width: min(96vw, 420px); margin: 0 auto; }
+.mm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+.mm-title { font-family: 'Fredoka'; font-size: 1.2rem; }
+.mm-attempts { font-size: .85rem; color: var(--muted); }
+.mm-palette { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+.mm-color { width: 42px; height: 42px; border-radius: 50%; border: 3px solid rgba(255,255,255,.25); transition: transform .12s; }
+.mm-color:hover { transform: scale(1.1); }
+.mm-red { background: #ef4444; }
+.mm-green { background: #22c55e; }
+.mm-blue { background: #3b82f6; }
+.mm-yellow { background: #eab308; }
+.mm-purple { background: #a855f7; }
+.mm-orange { background: #f97316; }
+.mm-pick { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; min-height: 42px; }
+.mm-peg { width: 36px; height: 36px; border-radius: 50%; display: inline-block; border: 2px solid rgba(255,255,255,.2); }
+.mm-slot { width: 36px; height: 36px; border-radius: 50%; border: 2px dashed var(--border); display: inline-block; }
+.mm-submit { display: block; margin: 0 auto 12px; }
+.mm-history { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.mm-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: rgba(0,0,0,.2); }
+.mm-row.latest { border: 1px solid rgba(124,92,255,.4); animation: pop .3s ease; }
+.mm-feedback { margin-left: auto; letter-spacing: 3px; font-size: 1.1rem; color: var(--primary-2); }
+.mm-hint { text-align: center; font-weight: 600; min-height: 1.3em; }
+
+/* --- Simon --- */
+.sim-wrap { width: min(96vw, 400px); text-align: center; }
+.sim-head { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
+.sim-round { font-weight: 600; color: var(--muted); margin-bottom: 12px; }
+.sim-pad { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.sim-btn {
+  aspect-ratio: 1.2; border-radius: 18px; font-weight: 700; font-size: .9rem;
+  border: 3px solid rgba(255,255,255,.15); transition: transform .1s, filter .1s, box-shadow .1s;
+  color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+.sim-red { background: linear-gradient(145deg, #f87171, #dc2626); }
+.sim-green { background: linear-gradient(145deg, #4ade80, #16a34a); }
+.sim-blue { background: linear-gradient(145deg, #60a5fa, #2563eb); }
+.sim-yellow { background: linear-gradient(145deg, #fde047, #ca8a04); }
+.sim-btn.lit { filter: brightness(1.45); transform: scale(1.04); box-shadow: 0 0 28px currentColor; }
+.sim-btn:disabled { opacity: .45; }
+.sim-hint { font-weight: 600; min-height: 1.3em; }
+
+/* --- Word Rush --- */
+.wr-wrap { width: min(96vw, 360px); margin: 0 auto; text-align: center; }
+.wr-head { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px; }
+.wr-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.wr-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.wr-tile {
+  aspect-ratio: 1; border-radius: 8px; border: 2px solid var(--border);
+  display: grid; place-items: center; font-family: 'Fredoka'; font-weight: 700; font-size: 1.1rem;
+  background: rgba(0,0,0,.25); text-transform: uppercase;
+}
+.wr-tile.draft { border-color: var(--primary-2); animation: fx-pulse-kf 1.2s ease infinite; }
+.wr-tile.correct { background: #16a34a; border-color: #22c55e; color: #fff; }
+.wr-tile.present { background: #ca8a04; border-color: #eab308; color: #fff; }
+.wr-tile.absent { background: #475569; border-color: #64748b; color: #e2e8f0; }
+.wr-keyboard { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 8px; max-width: 340px; margin-left: auto; margin-right: auto; }
+.wr-key { min-width: 28px; height: 40px; padding: 0 6px; border-radius: 8px; background: var(--panel); border: 1px solid var(--border); font-weight: 700; font-size: .85rem; }
+.wr-key:hover:not(:disabled) { background: var(--panel-strong); }
+.wr-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+.wr-hint { font-weight: 600; min-height: 1.3em; color: var(--muted); }
+
+/* --- Dados Duelo --- */
+.dy-wrap { width: min(96vw, 400px); text-align: center; margin: 0 auto; }
+.dy-head { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
+.dy-round { font-weight: 600; color: var(--muted); margin-bottom: 10px; }
+.dy-dice { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+.dy-die {
+  width: 52px; height: 52px; border-radius: 12px; font-family: 'Fredoka'; font-size: 1.6rem; font-weight: 700;
+  background: linear-gradient(145deg, #fff, #e2e8f0); color: #0f172a; border: 2px solid #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0,0,0,.35); transition: transform .12s, border-color .15s;
+}
+.dy-die.held { border-color: #f59e0b; background: linear-gradient(145deg, #fef3c7, #fde68a); transform: translateY(-3px); }
+.dy-die:hover:not(:disabled) { transform: scale(1.06); }
+.dy-sum { font-family: 'Fredoka'; font-size: 1.4rem; margin-bottom: 10px; }
+.dy-actions { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+.dy-reveal { padding: 12px; border-radius: 14px; background: rgba(124,92,255,.15); border: 1px solid rgba(124,92,255,.35); margin-bottom: 8px; animation: pop .35s ease; }
+.dy-hint { font-weight: 600; min-height: 1.3em; }
+
+.score-av {
+  width: 28px; height: 28px; border-radius: 8px; display: inline-grid; place-items: center;
+  font-size: .72rem; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+
+/* Temas de pantalla para nuevos juegos */
+#screen-game[data-game="reversi"] .game-title { color: #4ade80; }
+#screen-game[data-game="mastermind"] .game-title { color: #c4b5fd; }
+#screen-game[data-game="simon"] .game-title { color: #fbbf24; }
+#screen-game[data-game="wordrush"] .game-title { color: #86efac; }
+#screen-game[data-game="dicey"] .game-title { color: #fcd34d; }
+
+#game-stage[data-game="reversi"] { background: radial-gradient(ellipse at center, rgba(21,128,61,.18), transparent 70%); border-radius: 20px; padding: 8px; }
+#game-stage[data-game="mastermind"] { background: radial-gradient(ellipse at center, rgba(99,102,241,.15), transparent 70%); border-radius: 20px; padding: 8px; }
+#game-stage[data-game="simon"] { background: radial-gradient(ellipse at center, rgba(245,158,11,.12), transparent 70%); border-radius: 20px; padding: 8px; }
+#game-stage[data-game="wordrush"] { background: radial-gradient(ellipse at center, rgba(34,197,94,.12), transparent 70%); border-radius: 20px; padding: 8px; }
+#game-stage[data-game="dicey"] { background: radial-gradient(ellipse at center, rgba(234,179,8,.14), transparent 70%); border-radius: 20px; padding: 8px; }

@@ -1,0 +1,25 @@
+{
+  "name": "mini-juegos-multijugador",
+  "version": "1.0.0",
+  "description": "App web de minijuegos multijugador online en tiempo real. Crea salas con código y juega sin iniciar sesión.",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "keywords": [
+    "minijuegos",
+    "multijugador",
+    "websocket",
+    "socket.io",
+    "battleship",
+    "juegos"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}

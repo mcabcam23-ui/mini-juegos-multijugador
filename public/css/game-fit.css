@@ -1,0 +1,495 @@
+/* ===== Minijuegos a pantalla completa (sin scroll) ===== */
+
+body.game-active {
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body.game-active .topbar {
+  flex-shrink: 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+body.game-active #app {
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+  width: 100%;
+  padding: 0 10px 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body.game-active #screen-game.active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.game-active .game-topbar {
+  flex-shrink: 0;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+body.game-active .game-title {
+  font-size: clamp(1.05rem, 3.5vw, 1.35rem);
+}
+
+body.game-active .game-code {
+  padding: 5px 10px;
+  font-size: .78rem;
+}
+
+body.game-active .turn-banner {
+  flex-shrink: 0;
+  margin: 4px auto;
+  padding: 7px 14px;
+  font-size: .88rem;
+  max-width: min(560px, 100%);
+}
+
+body.game-active .turn-banner:empty,
+body.game-active .turn-banner[style*="display: none"] {
+  display: none !important;
+  margin: 0;
+  padding: 0;
+}
+
+body.game-active .game-stage {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin-top: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.game-active.in-room .game-stage {
+  padding-bottom: 58px;
+}
+
+.game-fit-shell {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.game-fit-scale {
+  transform-origin: center center;
+  max-width: 100%;
+}
+
+/* Compactar wrappers dentro del área de juego */
+body.game-active .game-fit-scale > * {
+  max-width: min(100vw - 24px, 720px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.game-active #game-stage[data-game] {
+  padding: 2px 4px !important;
+  border-radius: 14px;
+}
+
+body.game-active .ttt-wrap,
+body.game-active .c4-outer,
+body.game-active .rps-wrap,
+body.game-active .hang-wrap,
+body.game-active .mem-wrap,
+body.game-active .chk-outer,
+body.game-active .dots-outer,
+body.game-active .triv-wrap,
+body.game-active .bs-game {
+  gap: 6px;
+}
+
+body.game-active .ttt-head,
+body.game-active .c4-head,
+body.game-active .dots-title,
+body.game-active .chk-capbar {
+  font-size: .82rem;
+  margin-bottom: 4px;
+}
+
+body.game-active .ttt-status,
+body.game-active .c4-status,
+body.game-active .rps-status,
+body.game-active .chk-hint,
+body.game-active .dots-hint,
+body.game-active .hang-last,
+body.game-active .triv-status {
+  margin: 4px 0;
+  min-height: 1.1em;
+  font-size: .88rem;
+}
+
+body.game-active .ttt-board-wrap {
+  width: min(88vw, 320px);
+}
+
+body.game-active .c4-board,
+body.game-active .c4-cols {
+  width: min(88vw, 420px);
+  gap: 5px;
+}
+
+body.game-active .c4-wrap {
+  padding: 12px 10px 10px;
+}
+
+body.game-active .mem-scores,
+body.game-active .triv-scores {
+  margin: 4px 0;
+  gap: 6px;
+}
+
+body.game-active .mem-bar {
+  padding: 6px 12px;
+  font-size: .85rem;
+}
+
+body.game-active .mem-grid {
+  width: min(92vw, 480px);
+  gap: 6px;
+  padding: 8px;
+}
+
+body.game-active .chk-board {
+  width: min(88vw, 400px);
+}
+
+body.game-active .rps-wrap {
+  padding: 12px;
+  width: min(94vw, 480px);
+}
+
+body.game-active .rps-score {
+  margin-bottom: 10px;
+}
+
+body.game-active .rps-player .rp-score {
+  font-size: 2.2rem;
+}
+
+body.game-active .rps-choices {
+  gap: 10px;
+  margin-top: 10px;
+}
+
+body.game-active .rps-arena {
+  min-height: 140px;
+  padding: 12px 8px;
+  margin: 6px 0;
+}
+
+body.game-active .rps-reveal {
+  min-height: 72px;
+  margin: 8px 0;
+  gap: 16px;
+}
+
+body.game-active .hang-wrap {
+  padding: 12px;
+  width: min(96vw, 520px);
+}
+
+body.game-active .hang-top {
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+body.game-active .hang-svg {
+  width: 88px;
+  height: auto;
+}
+
+body.game-active .hang-word {
+  margin: 8px 0;
+  gap: 5px;
+}
+
+body.game-active .hang-tile {
+  width: 28px;
+  height: 36px;
+  font-size: 1.35rem;
+}
+
+body.game-active .hang-keyboard {
+  gap: 4px;
+  max-width: 400px;
+  margin-bottom: 8px;
+}
+
+body.game-active .hang-key {
+  font-size: .88rem;
+}
+
+body.game-active .triv-wrap {
+  padding: 12px;
+  width: min(96vw, 560px);
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+}
+
+body.game-active .triv-head {
+  margin-bottom: 6px;
+}
+
+body.game-active .triv-stage {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+body.game-active .triv-question {
+  padding: 12px;
+  font-size: .95rem;
+}
+
+body.game-active .triv-countdown {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+body.game-active .triv-options {
+  gap: 8px;
+}
+
+body.game-active .triv-opt {
+  padding: 10px 12px;
+  font-size: .92rem;
+}
+
+body.game-active .triv-dice {
+  width: 88px;
+  height: 88px;
+}
+
+body.game-active .triv-dice-face {
+  font-size: 2.4rem;
+}
+
+body.game-active .triv-theme-card {
+  padding: 16px 14px;
+}
+
+body.game-active .dots-frame {
+  padding: 10px;
+  max-width: 100%;
+  transform: none !important;
+}
+
+body.game-active .dots-line.h { min-height: 36px; }
+body.game-active .dots-line.v { min-width: 36px; }
+body.game-active .dots-line {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+body.game-active .dots-box {
+  min-height: 32px;
+  font-size: .78rem;
+}
+
+body.game-active .bs-game {
+  width: min(98vw, 680px);
+}
+
+body.game-active .bs-title {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+body.game-active .bs-battle-row {
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+body.game-active .bs-section {
+  padding: 8px;
+}
+
+body.game-active .bs-section-title {
+  font-size: .82rem;
+  margin-bottom: 4px;
+}
+
+body.game-active .bs-cell {
+  min-width: 22px;
+  min-height: 22px;
+}
+
+body.game-active .bs-coord {
+  min-height: 18px;
+  font-size: .65rem;
+}
+
+body.game-active .bs-result-key,
+body.game-active .bs-controls,
+body.game-active .bs-hint,
+body.game-active .bs-status {
+  margin-top: 6px;
+  font-size: .82rem;
+}
+
+body.game-active .bs-palette {
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+body.game-active .bs-verbal-intro {
+  padding: 10px;
+  font-size: .85rem;
+}
+
+body.game-active .bs-verbal-tools {
+  gap: 6px;
+  margin: 8px 0;
+}
+
+body.game-active .bs-verbal-tool {
+  padding: 8px 10px;
+  font-size: .78rem;
+}
+
+body.game-active .bs-verbal-actions {
+  margin: 8px 0;
+  gap: 6px;
+}
+
+body.game-active .bs-verbal-side {
+  min-width: 140px;
+  max-width: 200px;
+}
+
+/* Tocado y Hundido: scroll vertical si no cabe (colocación + batalla) */
+body.game-active #game-stage[data-game="battleship"],
+body.game-active #game-stage[data-game="rps"] {
+  overflow-x: hidden;
+  overflow-y: auto;
+  align-items: stretch;
+  justify-content: flex-start;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
+body.game-active #game-stage[data-game="battleship"] .game-fit-shell,
+body.game-active #game-stage[data-game="battleship"] .game-fit-scale,
+body.game-active #game-stage[data-game="rps"] .game-fit-shell,
+body.game-active #game-stage[data-game="rps"] .game-fit-scale {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  align-items: stretch;
+  justify-content: flex-start;
+  transform: none !important;
+}
+
+body.game-active #game-stage[data-game="battleship"] .bs-game,
+body.game-active #game-stage[data-game="rps"] .rps-wrap {
+  width: 100%;
+  max-width: min(99vw, 980px);
+  margin: 0 auto;
+  padding-bottom: 12px;
+  touch-action: manipulation;
+}
+
+body.game-active #game-stage[data-game="battleship"] {
+  padding: 6px 4px !important;
+}
+
+body.game-active #game-stage[data-game="battleship"] .bs-battle-layout {
+  max-width: min(99vw, 980px);
+}
+
+body.game-active #game-stage[data-game="battleship"] .bs-title {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+body.game-active #game-stage[data-game="battleship"] .bs-cell {
+  touch-action: manipulation;
+  min-width: 0;
+  min-height: 0;
+}
+
+body.game-active #game-stage[data-game="battleship"] .bs-coord {
+  min-height: 0;
+  font-size: clamp(.45rem, 2.4vw, .62rem);
+}
+
+@media (max-width: 560px) {
+  body.game-active.in-room .game-stage {
+    padding-bottom: 52px;
+  }
+
+  body.game-active .mem-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  body.game-active .hang-keyboard {
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  body.game-active .triv-options {
+    grid-template-columns: 1fr;
+  }
+
+  body.game-active .rps-btn {
+    width: clamp(72px, 22vw, 96px);
+    min-height: clamp(72px, 22vw, 96px);
+  }
+
+  /* Tocado y Hundido — móvil estrecho */
+  body.game-active #game-stage[data-game="battleship"] .bs-battle-layout {
+    --bs-legend-w: clamp(78px, 24vw, 90px);
+  }
+
+  body.game-active #game-stage[data-game="battleship"] .bs-battle-own,
+  body.game-active #game-stage[data-game="battleship"] .bs-battle-fire {
+    padding: 5px;
+  }
+}
+
+@media (max-height: 640px) {
+  body.game-active .game-topbar .back-link {
+    font-size: .85rem;
+  }
+
+  body.game-active .turn-banner {
+    padding: 5px 10px;
+    font-size: .82rem;
+  }
+
+  body.game-active .hang-svg {
+    width: 72px;
+  }
+
+  body.game-active .rps-player .rp-score {
+    font-size: 1.8rem;
+  }
+
+  body.game-active #game-stage[data-game="battleship"] .bs-battle-layout {
+    gap: 5px;
+    --bs-legend-w: clamp(74px, 22vw, 86px);
+  }
+}
