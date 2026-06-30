@@ -44,6 +44,10 @@
           <button class="btn btn-primary" id="home-play">🎲 Elegir juego</button>
           <button class="btn btn-ghost" id="home-join">Unirme con un código</button>
         </div>
+        <div class="home-nick">
+          <label for="home-nickname">Tu nombre</label>
+          <input id="home-nickname" maxlength="16" placeholder="Escribe tu apodo…" autocomplete="nickname" />
+        </div>
         <div class="hero-stats">
           <div class="stat"><span class="stat-num" id="stat-games">9</span><span class="stat-lbl">Juegos</span></div>
           <div class="stat"><span class="stat-num">∞</span><span class="stat-lbl">Partidas</span></div>
@@ -115,6 +119,13 @@
           </div>
         </div>
         <div class="players-block">
+          <div class="lobby-nick-row">
+            <label for="lobby-nickname">Tu nombre</label>
+            <div class="lobby-nick-edit">
+              <input id="lobby-nickname" maxlength="16" placeholder="Tu apodo…" autocomplete="nickname" />
+              <button type="button" class="btn btn-ghost btn-sm" id="lobby-nick-save">Guardar</button>
+            </div>
+          </div>
           <div class="players-head">
             <h3>Jugadores</h3>
             <span class="players-count" id="players-count"></span>

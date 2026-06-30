@@ -212,7 +212,10 @@ io.on('connection', (socket) => {
     const p = room.players.get(playerId);
     p.socketId = socket.id;
     p.connected = true;
-    if (nickname) p.nickname = nickname;
+    if (nickname) {
+      const nick = String(nickname).trim().slice(0, 16);
+      if (nick) p.nickname = nick;
+    }
     socket.data.playerId = playerId;
     socket.data.code = code;
     socket.join(code);
@@ -220,6 +223,17 @@ io.on('connection', (socket) => {
     socket.emit('chat:history', room.chat);
     broadcastRoom(room);
     if (room.status !== 'lobby' && room.state) broadcastGame(room);
+  });
+
+  socket.on('setNickname', ({ nickname }, cb) => {
+    const room = manager.getRoom(socket.data.code);
+    if (!room) return cb && cb({ error: 'Sala no encontrada.' });
+    const player = room.players.get(socket.data.playerId);
+    if (!player || player.isBot) return cb && cb({ error: 'No estás en la sala.' });
+    const nick = (nickname || '').trim().slice(0, 16) || 'Jugador';
+    player.nickname = nick;
+    cb && cb({ ok: true, nickname: nick });
+    broadcastRoom(room);
   });
 
   socket.on('setBattleshipMode', ({ mode }, cb) => {

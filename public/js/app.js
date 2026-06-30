@@ -11,6 +11,47 @@ if (!playerId) {
 }
 let nickname = localStorage.getItem('arcade_nick') || '';
 
+function persistNick(value) {
+  nickname = (value || '').trim().slice(0, 16) || 'Jugador';
+  localStorage.setItem('arcade_nick', nickname);
+  const home = $('#home-nickname');
+  const setup = $('#nickname');
+  const lobby = $('#lobby-nickname');
+  if (home && home.value !== nickname) home.value = nickname;
+  if (setup && setup.value !== nickname) setup.value = nickname;
+  if (lobby && document.activeElement !== lobby && lobby.value !== nickname) lobby.value = nickname;
+  return nickname;
+}
+
+function readNickFromDOM() {
+  const raw = (
+    $('#lobby-nickname')?.value
+    || $('#nickname')?.value
+    || $('#home-nickname')?.value
+    || nickname
+    || localStorage.getItem('arcade_nick')
+    || ''
+  ).trim().slice(0, 16);
+  return raw || 'Jugador';
+}
+
+function initNickFields() {
+  persistNick(localStorage.getItem('arcade_nick') || '');
+}
+
+function saveLobbyNick() {
+  const nick = persistNick($('#lobby-nickname')?.value || nickname);
+  if (!room) {
+    toast('Nombre guardado', 'success');
+    return;
+  }
+  socket.emit('setNickname', { nickname: nick }, (res) => {
+    if (res?.error) return toast(res.error, 'error');
+    rememberSession();
+    toast('Nombre actualizado', 'success');
+  });
+}
+
 /* ============ Estado ============ */
 const socket = io();
 let GAMES = [];
@@ -292,16 +333,13 @@ function renderGamesGrid() {
 
 /* ============ Crear sala al elegir juego ============ */
 function currentNick() {
-  const stored = (nickname || localStorage.getItem('arcade_nick') || '').trim().slice(0, 16);
-  return stored || 'Jugador';
+  return readNickFromDOM();
 }
 
 function createRoomForGame(gameId) {
   if (creatingRoom) return;
   selectedGameId = gameId;
-  const nick = currentNick();
-  nickname = nick;
-  localStorage.setItem('arcade_nick', nick);
+  const nick = persistNick(readNickFromDOM());
   creatingRoom = true;
   socket.emit('createRoom', { gameId, nickname: nick, playerId }, (res) => {
     creatingRoom = false;
@@ -316,16 +354,14 @@ function createRoomForGame(gameId) {
 /* ============ Unirse con código ============ */
 function openSetup(prefillCode = '') {
   selectedGameId = null;
-  $('#nickname').value = nickname || currentNick();
+  persistNick($('#home-nickname')?.value || nickname);
   $('#code-input').value = prefillCode || '';
   showScreen('setup');
   setTimeout(() => (prefillCode ? $('#code-input') : $('#nickname')).focus(), 60);
 }
 
 function readNick() {
-  nickname = ($('#nickname').value || '').trim().slice(0, 16) || 'Jugador';
-  localStorage.setItem('arcade_nick', nickname);
-  return nickname;
+  return persistNick($('#nickname').value || readNickFromDOM());
 }
 
 function doJoin(code) {
@@ -390,6 +426,12 @@ function renderLobby() {
   $('#code-text').textContent = room.code;
   $('#players-count').textContent = `${room.players.length}/${capacity}`;
   $('#game-code-pill').textContent = room.code;
+
+  const me = room.players.find((p) => p.id === playerId);
+  if (me) {
+    const lobbyNick = $('#lobby-nickname');
+    if (lobbyNick && document.activeElement !== lobbyNick) lobbyNick.value = me.nickname;
+  }
 
   const list = $('#players-list');
   list.innerHTML = '';
@@ -689,6 +731,13 @@ function escapeHtml(str) {
 window.escapeHtml = escapeHtml;
 
 /* ============ Init ============ */
+initNickFields();
+$('#home-nickname')?.addEventListener('change', () => persistNick($('#home-nickname').value));
+$('#home-nickname')?.addEventListener('blur', () => persistNick($('#home-nickname').value));
+$('#lobby-nick-save')?.addEventListener('click', saveLobbyNick);
+$('#lobby-nickname')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); saveLobbyNick(); }
+});
 loadGames();
 (function checkUrlRoom() {
   const params = new URLSearchParams(location.search);

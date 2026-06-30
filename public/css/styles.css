@@ -76,6 +76,26 @@ input { font-family: inherit; }
 }
 .hero-sub { color: var(--muted); margin: 16px auto 0; max-width: 560px; font-size: 1.05rem; }
 .hero-actions { margin-top: 22px; }
+.home-nick {
+  max-width: 280px; margin: 18px auto 0; text-align: left;
+}
+.home-nick label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 7px; }
+.home-nick input {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--panel); color: var(--text);
+  font: inherit; font-size: 1rem;
+}
+.home-nick input:focus { outline: none; border-color: var(--primary-2); box-shadow: 0 0 0 2px rgba(70,224,200,.2); }
+.lobby-nick-row {
+  margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border);
+}
+.lobby-nick-row label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 8px; }
+.lobby-nick-edit { display: flex; gap: 8px; align-items: center; }
+.lobby-nick-edit input {
+  flex: 1; min-width: 0; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--panel); color: var(--text); font: inherit;
+}
+.lobby-nick-edit input:focus { outline: none; border-color: var(--primary-2); }
 
 /* ===== Games grid ===== */
 .games-grid {
