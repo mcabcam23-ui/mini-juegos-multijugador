@@ -39,7 +39,7 @@ export default {
     name: 'Código Secreto',
     emoji: '🔐',
     tagline: 'Descifra la combinación',
-    description: 'Hay un código secreto de 4 colores (6 disponibles, pueden repetirse). Comprueba combinaciones: ● = acierto en su sitio, ○ = color correcto en otro sitio. El primero en acertarlo gana.',
+    description: 'Adivina el código de 4 colores. Las pistas son fichas doradas (acierto exacto) y anillos blancos (color en otro sitio). El primero en acertarlo gana.',
     minPlayers: 2,
     maxPlayers: 2,
     gradient: 'linear-gradient(135deg, #6366f1, #ec4899)',
