@@ -4,10 +4,12 @@ import { buildScoreChip } from './shared.js';
 
 const ROWS = 6;
 const COLS = 5;
+const KB_ROWS = ['QWERTYUIOP', 'ASDFGHJKLÑ', 'ZXCVBNM'];
 let liveRoot = null;
 let prevStatus = null;
 let draft = '';
 let prevGuessCount = 0;
+let prevHintKey = '';
 let lastCtx = null;
 
 export default function render(ctx) {
@@ -18,27 +20,33 @@ export default function render(ctx) {
   if (!liveRoot || !root.contains(liveRoot)) {
     root.innerHTML = '';
     draft = '';
+    prevHintKey = '';
     liveRoot = document.createElement('div');
     liveRoot.className = 'wr-wrap';
     liveRoot.innerHTML = `
       <div class="wr-head"></div>
+      <p class="wr-hint"></p>
       <div class="wr-grid"></div>
-      <div class="wr-keyboard"></div>
       <div class="wr-actions">
-        <button type="button" class="btn btn-ghost wr-back">⌫</button>
+        <button type="button" class="btn btn-ghost wr-back">⌫ Borrar</button>
         <button type="button" class="btn btn-primary wr-send" disabled>Enviar</button>
       </div>
-      <p class="wr-hint"></p>`;
+      <div class="wr-keyboard"></div>`;
     root.appendChild(liveRoot);
 
     const kb = liveRoot.querySelector('.wr-keyboard');
-    'QWERTYUIOPASDFGHJKLÑZXCVBNM'.split('').forEach((ch) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'wr-key';
-      b.textContent = ch;
-      b.addEventListener('click', () => onKey(ch));
-      kb.appendChild(b);
+    KB_ROWS.forEach((letters) => {
+      const row = document.createElement('div');
+      row.className = 'wr-kb-row';
+      letters.split('').forEach((ch) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'wr-key';
+        b.textContent = ch;
+        b.addEventListener('click', () => onKey(ch));
+        row.appendChild(b);
+      });
+      kb.appendChild(row);
     });
 
     liveRoot.querySelector('.wr-back').addEventListener('click', () => {
@@ -81,17 +89,22 @@ export default function render(ctx) {
   liveRoot.querySelector('.wr-back').disabled = !canGuess || !draft.length;
 
   const hint = liveRoot.querySelector('.wr-hint');
+  const sendBtn = liveRoot.querySelector('.wr-send');
+  let hintText = '';
+
   if (view.status === 'finished') {
-    hint.textContent = view.winner === me ? '🎉 ¡Palabra correcta!' : view.winner ? `Ganó ${ctx.nameOf(view.winner)}` : '🤝 Empate';
-    if (view.secret) hint.textContent += ` · Era ${view.secret}`;
+    hintText = view.winner === me ? '¡Palabra correcta!' : view.winner ? `Ganó ${ctx.nameOf(view.winner)}` : 'Empate';
+    if (view.secret) hintText += ` · Era ${view.secret}`;
+    hint.textContent = hintText;
     if (prevStatus !== 'finished') {
-      if (view.winner === me) { SFX.gameWin(ctx.meta.id); celebrate(liveRoot, '🎉', 40); }
+      if (view.winner === me) { SFX.gameWin(ctx.meta.id); celebrate(grid, '🎉', 28); }
       else if (view.winner) SFX.gameLose(ctx.meta.id);
       else SFX.draw();
     }
   } else if (canGuess) {
-    hint.textContent = '⌨️ Carrera: escribe tu palabra de 5 letras cuando quieras';
-    inviteTurn(hint);
+    hintText = 'Escribe tu palabra de 5 letras';
+    hint.textContent = hintText;
+    if (hintText !== prevHintKey) inviteTurn(sendBtn);
   } else {
     hint.textContent = 'Esperando a que terminen los demás…';
   }
@@ -103,6 +116,8 @@ export default function render(ctx) {
     const row = grid.children[view.myGuesses.length - 1];
     row?.querySelectorAll('.wr-tile').forEach((t) => pop(t));
   }
+
+  prevHintKey = hintText;
   prevGuessCount = view.myGuesses.length;
   prevStatus = view.status;
 }
@@ -110,7 +125,7 @@ export default function render(ctx) {
 function onKey(ch) {
   const ctx = lastCtx;
   if (!ctx) return;
-  const { view, me } = ctx;
+  const { view } = ctx;
   if (view.status !== 'playing') return;
   if (view.myGuesses.length >= view.maxGuesses || draft.length >= COLS) return;
   draft += ch;
@@ -131,6 +146,7 @@ function syncDraftUI() {
   const ctx = lastCtx;
   const canGuess = ctx && ctx.view.status === 'playing' && ctx.view.myGuesses.length < ctx.view.maxGuesses;
   liveRoot.querySelector('.wr-send').disabled = draft.length !== COLS || !canGuess;
+  liveRoot.querySelector('.wr-back').disabled = !canGuess || !draft.length;
   const grid = liveRoot.querySelector('.wr-grid');
   if (!grid || !ctx) return;
   const row = grid.children[ctx.view.myGuesses.length];

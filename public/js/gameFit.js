@@ -5,7 +5,7 @@ let rafId = 0;
 let lastScale = 1;
 let viewportBound = false;
 
-const NO_SCALE_GAMES = new Set(['battleship', 'rps', 'mastermind']);
+const NO_SCALE_GAMES = new Set(['battleship', 'rps', 'mastermind', 'wordrush']);
 
 function onViewportChange() {
   if (!document.body.classList.contains('game-active') || !observedStage) return;

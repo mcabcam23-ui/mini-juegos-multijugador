@@ -142,24 +142,110 @@
 .sim-hint { font-weight: 600; min-height: 1.3em; }
 
 /* --- Word Rush --- */
-.wr-wrap { width: min(96vw, 360px); margin: 0 auto; text-align: center; }
-.wr-head { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px; }
-.wr-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-.wr-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.wr-wrap {
+  width: min(96vw, 340px);
+  margin: 0 auto;
+  text-align: center;
+  padding: 4px 2px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wr-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.wr-head .mem-score {
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  gap: 5px;
+}
+.wr-head .score-av {
+  width: 22px;
+  height: 22px;
+  font-size: 0.62rem;
+  border-radius: 6px;
+}
+.wr-hint {
+  font-weight: 600;
+  font-size: 0.82rem;
+  min-height: 1.1em;
+  color: var(--muted);
+  margin: 0;
+  flex-shrink: 0;
+}
+.wr-grid {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3px, 1vw, 5px);
+  flex-shrink: 0;
+}
+.wr-row {
+  display: grid;
+  grid-template-columns: repeat(5, clamp(40px, 11.5vw, 52px));
+  gap: clamp(3px, 1vw, 5px);
+  justify-content: center;
+}
 .wr-tile {
-  aspect-ratio: 1; border-radius: 8px; border: 2px solid var(--border);
-  display: grid; place-items: center; font-family: 'Fredoka'; font-weight: 700; font-size: 1.1rem;
-  background: rgba(0,0,0,.25); text-transform: uppercase;
+  width: clamp(40px, 11.5vw, 52px);
+  height: clamp(40px, 11.5vw, 52px);
+  border-radius: 7px;
+  border: 2px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-family: 'Fredoka';
+  font-weight: 700;
+  font-size: clamp(0.9rem, 3.2vw, 1.05rem);
+  background: rgba(0,0,0,.25);
+  text-transform: uppercase;
 }
 .wr-tile.draft { border-color: var(--primary-2); animation: fx-pulse-kf 1.2s ease infinite; }
 .wr-tile.correct { background: #16a34a; border-color: #22c55e; color: #fff; }
 .wr-tile.present { background: #ca8a04; border-color: #eab308; color: #fff; }
 .wr-tile.absent { background: #475569; border-color: #64748b; color: #e2e8f0; }
-.wr-keyboard { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 8px; max-width: 340px; margin-left: auto; margin-right: auto; }
-.wr-key { min-width: 28px; height: 40px; padding: 0 6px; border-radius: 8px; background: var(--panel); border: 1px solid var(--border); font-weight: 700; font-size: .85rem; }
+.wr-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 3;
+  padding: 4px 0;
+}
+.wr-actions .btn {
+  min-width: 108px;
+  min-height: 40px;
+  font-size: 0.88rem;
+}
+.wr-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.wr-kb-row {
+  display: flex;
+  gap: clamp(2px, 0.8vw, 4px);
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+.wr-key {
+  min-width: clamp(24px, 7.2vw, 30px);
+  height: clamp(32px, 9vw, 36px);
+  padding: 0 4px;
+  border-radius: 7px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-weight: 700;
+  font-size: clamp(0.68rem, 2.4vw, 0.8rem);
+  touch-action: manipulation;
+}
 .wr-key:hover:not(:disabled) { background: var(--panel-strong); }
-.wr-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
-.wr-hint { font-weight: 600; min-height: 1.3em; color: var(--muted); }
 
 /* --- Dados Duelo --- */
 .dy-rules { font-size: 0.88rem; color: var(--muted); margin-bottom: 10px; line-height: 1.45; padding: 0 4px; }

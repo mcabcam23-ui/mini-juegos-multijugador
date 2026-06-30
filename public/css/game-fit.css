@@ -381,7 +381,8 @@ body.game-active .bs-verbal-side {
 /* Tocado y Hundido: scroll vertical si no cabe (colocación + batalla) */
 body.game-active #game-stage[data-game="battleship"],
 body.game-active #game-stage[data-game="rps"],
-body.game-active #game-stage[data-game="mastermind"] {
+body.game-active #game-stage[data-game="mastermind"],
+body.game-active #game-stage[data-game="wordrush"] {
   overflow-x: hidden;
   overflow-y: auto;
   align-items: stretch;
@@ -396,7 +397,9 @@ body.game-active #game-stage[data-game="battleship"] .game-fit-scale,
 body.game-active #game-stage[data-game="rps"] .game-fit-shell,
 body.game-active #game-stage[data-game="rps"] .game-fit-scale,
 body.game-active #game-stage[data-game="mastermind"] .game-fit-shell,
-body.game-active #game-stage[data-game="mastermind"] .game-fit-scale {
+body.game-active #game-stage[data-game="mastermind"] .game-fit-scale,
+body.game-active #game-stage[data-game="wordrush"] .game-fit-shell,
+body.game-active #game-stage[data-game="wordrush"] .game-fit-scale {
   width: 100%;
   height: auto;
   min-height: 0;
@@ -409,7 +412,8 @@ body.game-active #game-stage[data-game="mastermind"] .game-fit-scale {
 
 body.game-active #game-stage[data-game="battleship"] .bs-game,
 body.game-active #game-stage[data-game="rps"] .rps-wrap,
-body.game-active #game-stage[data-game="mastermind"] .mm-wrap {
+body.game-active #game-stage[data-game="mastermind"] .mm-wrap,
+body.game-active #game-stage[data-game="wordrush"] .wr-wrap {
   width: 100%;
   max-width: min(99vw, 980px);
   margin: 0 auto;
