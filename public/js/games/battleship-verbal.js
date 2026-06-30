@@ -255,18 +255,26 @@ function bindMarkCell(cell, board) {
 function refreshOwnGrid(grid, view) {
   if (!grid) return;
   const { shipSet, shipTiny } = buildShipSets(view.myShips);
+  const marks = view.rivalMarks || {};
   for (let y = 0; y < SIZE; y++) {
     for (let x = 0; x < SIZE; x++) {
       const cell = grid.querySelector(`[data-x="${x}"][data-y="${y}"]`);
       if (!cell) continue;
       const k = key(x, y);
       const hasShip = shipSet.has(k) || shipTiny.has(k);
-      cell.className = 'bs-cell bs-verbal-cell';
-      cell.replaceChildren();
+      const mark = marks[k];
       cell.disabled = true;
-      if (hasShip) {
-        cell.classList.add('ship');
-        if (shipTiny.has(k)) cell.classList.add('ship-tiny');
+      if (mark) {
+        applyCellVisual(cell, markToVisual(mark, 'own'), hasShip);
+      } else {
+        cell.className = 'bs-cell bs-verbal-cell';
+        cell.replaceChildren();
+        cell.dataset.visual = 'empty';
+        cell.dataset.hasShip = hasShip ? '1' : '0';
+        if (hasShip) {
+          cell.classList.add('ship');
+          if (shipTiny.has(k)) cell.classList.add('ship-tiny');
+        }
       }
     }
   }
@@ -295,7 +303,9 @@ function patchVerbalDom(ctx, live) {
 
   const stats = live.querySelector('.bs-verbal-stats');
   if (stats && view.stats) {
-    stats.innerHTML = `<span>Tus disparos: ${view.stats.enemyMiss} agua · ${view.stats.enemyHit} tocado · ${view.stats.enemySunkCells} hundido</span>`;
+    stats.innerHTML = `
+      <span>Tus disparos: ${view.stats.enemyMiss} agua · ${view.stats.enemyHit} tocado · ${view.stats.enemySunkCells} hundido</span>
+      <span>Rival en tu flota: ${view.stats.rivalMiss} agua · ${view.stats.rivalHit} tocado · ${view.stats.rivalSunkCells} hundido</span>`;
   }
 
   const tip = live.querySelector('.bs-verbal-tip');
@@ -320,7 +330,7 @@ function mountVerbalDom(ctx) {
 
   const ownGrid = buildBoardSkeleton();
   ownGrid.dataset.board = 'own';
-  liveRoot.appendChild(section('Tu flota', ownGrid));
+  liveRoot.appendChild(section('Tu flota · marcas del rival', ownGrid));
 
   const enemyGrid = buildBoardSkeleton();
   enemyGrid.dataset.board = 'enemy';

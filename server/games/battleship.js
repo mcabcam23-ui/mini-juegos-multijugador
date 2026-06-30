@@ -227,6 +227,8 @@ export default {
       const enemy = state.boards[enemyId];
       const enemyMarks = manual.enemyMarks || {};
       const myIncoming = me?.incoming || {};
+      const rivalManual = enemyId ? state.manual[enemyId] : null;
+      const rivalMarks = rivalManual?.enemyMarks || {};
       return {
         playMode: 'verbal',
         phase: state.phase,
@@ -237,12 +239,16 @@ export default {
         enemyReady: enemy?.ready ?? false,
         myShips: me?.ships ?? null,
         myIncoming,
+        rivalMarks,
         enemyMarks,
         ownMarks: myIncoming,
         stats: {
           enemyMiss: Object.values(enemyMarks).filter((v) => v === 'miss').length,
           enemyHit: Object.values(enemyMarks).filter((v) => v === 'hit').length,
           enemySunkCells: Object.values(enemyMarks).filter((v) => v === 'sunk').length,
+          rivalMiss: Object.values(rivalMarks).filter((v) => v === 'miss').length,
+          rivalHit: Object.values(rivalMarks).filter((v) => v === 'hit' || v === 'sunk').length,
+          rivalSunkCells: Object.values(rivalMarks).filter((v) => v === 'sunk').length,
           ownMiss: Object.values(myIncoming).filter((v) => v === 'miss').length,
           ownHit: Object.values(myIncoming).filter((v) => v === 'hit' || v === 'sunk').length,
         },
