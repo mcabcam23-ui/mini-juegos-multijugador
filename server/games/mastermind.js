@@ -39,7 +39,7 @@ export default {
     name: 'Código Secreto',
     emoji: '🔐',
     tagline: 'Descifra la combinación',
-    description: 'La misma combinación secreta para ambos. Jugáis a la vez: el primero en descifrarla gana. ● negro = acierto, ○ blanco = color en otra posición.',
+    description: 'Hay un código secreto de 4 colores (6 disponibles, pueden repetirse). Comprueba combinaciones: ● = acierto en su sitio, ○ = color correcto en otro sitio. El primero en acertarlo gana.',
     minPlayers: 2,
     maxPlayers: 2,
     gradient: 'linear-gradient(135deg, #6366f1, #ec4899)',

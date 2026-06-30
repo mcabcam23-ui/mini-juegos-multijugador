@@ -32,26 +32,42 @@
 
 /* --- Mastermind --- */
 .mm-wrap { width: min(96vw, 420px); margin: 0 auto; }
-.mm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-.mm-title { font-family: 'Fredoka'; font-size: 1.2rem; }
-.mm-attempts { font-size: .85rem; color: var(--muted); }
+.mm-rules { font-size: 0.86rem; color: var(--muted); line-height: 1.45; margin-bottom: 8px; text-align: center; }
+.mm-legend { text-align: center; font-size: 0.82rem; color: var(--muted); margin-bottom: 10px; }
+.mm-legend-exact { color: #fbbf24; font-weight: 700; }
+.mm-legend-wrong { color: #94a3b8; font-weight: 700; }
+.mm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+.mm-title { font-family: 'Fredoka'; font-size: 1.05rem; }
+.mm-attempts { font-size: .82rem; color: var(--muted); }
+.mm-pick { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; min-height: 42px; }
+.mm-slot-btn {
+  width: 42px; height: 42px; border-radius: 50%; padding: 0; cursor: pointer;
+  border: 2px dashed var(--border); background: transparent; transition: transform .12s, box-shadow .12s;
+}
+.mm-slot-btn.active { border-color: var(--primary-2); box-shadow: 0 0 0 2px rgba(124,92,255,.35); transform: scale(1.06); }
+.mm-slot-btn.mm-peg { border-style: solid; border-color: rgba(255,255,255,.25); }
 .mm-palette { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
 .mm-color { width: 42px; height: 42px; border-radius: 50%; border: 3px solid rgba(255,255,255,.25); transition: transform .12s; }
-.mm-color:hover { transform: scale(1.1); }
+.mm-color:hover:not(:disabled) { transform: scale(1.1); }
+.mm-color:disabled { opacity: 0.45; cursor: not-allowed; }
 .mm-red { background: #ef4444; }
 .mm-green { background: #22c55e; }
 .mm-blue { background: #3b82f6; }
 .mm-yellow { background: #eab308; }
 .mm-purple { background: #a855f7; }
 .mm-orange { background: #f97316; }
-.mm-pick { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; min-height: 42px; }
 .mm-peg { width: 36px; height: 36px; border-radius: 50%; display: inline-block; border: 2px solid rgba(255,255,255,.2); }
 .mm-slot { width: 36px; height: 36px; border-radius: 50%; border: 2px dashed var(--border); display: inline-block; }
-.mm-submit { display: block; margin: 0 auto 12px; }
-.mm-history { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-.mm-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: rgba(0,0,0,.2); }
+.mm-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+.mm-history-wrap { margin-bottom: 8px; }
+.mm-history-title { font-size: .78rem; color: var(--muted); margin-bottom: 4px; text-align: center; }
+.mm-history { display: flex; flex-direction: column; gap: 6px; max-height: min(28vh, 180px); overflow-y: auto; padding-right: 2px; }
+.mm-empty { font-size: .82rem; color: var(--muted); text-align: center; padding: 8px 4px; margin: 0; }
+.mm-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: rgba(0,0,0,.2); flex-shrink: 0; }
 .mm-row.latest { border: 1px solid rgba(124,92,255,.4); animation: pop .3s ease; }
-.mm-feedback { margin-left: auto; letter-spacing: 3px; font-size: 1.1rem; color: var(--primary-2); }
+.mm-feedback { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.mm-fb-text { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+.mm-fb-dots { letter-spacing: 2px; font-size: 1rem; color: var(--primary-2); }
 .mm-hint { text-align: center; font-weight: 600; min-height: 1.3em; }
 
 /* --- Simon --- */

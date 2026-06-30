@@ -25,7 +25,6 @@ export default function render(ctx) {
       <p class="dy-sum"></p>
       <div class="dy-actions">
         <button type="button" class="btn btn-primary dy-roll">🎲 Tirar 5 dados</button>
-        <button type="button" class="btn btn-ghost dy-reroll" hidden>↻ Relanzar</button>
         <button type="button" class="btn btn-primary dy-stand" hidden>✓ Confirmar</button>
       </div>
       <div class="dy-reveal" hidden></div>
@@ -35,12 +34,7 @@ export default function render(ctx) {
     liveRoot.querySelector('.dy-roll').addEventListener('click', () => {
       const c = lastCtx;
       if (!c || c.view.locked) return;
-      c.send({ type: 'roll' });
-      SFX.dyRoll();
-    });
-    liveRoot.querySelector('.dy-reroll').addEventListener('click', () => {
-      const c = lastCtx;
-      if (!c || c.view.locked || !c.view.rolled) return;
+      if (c.view.rolled && c.view.rerollsLeft <= 0) return;
       c.send({ type: 'roll' });
       SFX.dyRoll();
     });
@@ -85,13 +79,10 @@ export default function render(ctx) {
   liveRoot.querySelector('.dy-sum').textContent = sum == null ? 'Suma: —' : `Suma: ${sum}`;
 
   const rollBtn = liveRoot.querySelector('.dy-roll');
-  const rerollBtn = liveRoot.querySelector('.dy-reroll');
   const standBtn = liveRoot.querySelector('.dy-stand');
 
-  rollBtn.hidden = view.rolled;
-  rollBtn.disabled = view.locked || !rolling;
-  rerollBtn.hidden = !view.rolled;
-  rerollBtn.disabled = view.locked || !rolling || view.rerollsLeft <= 0;
+  rollBtn.textContent = view.rolled ? '🎲 Relanzar' : '🎲 Tirar 5 dados';
+  rollBtn.disabled = view.locked || !rolling || (view.rolled && view.rerollsLeft <= 0);
   standBtn.hidden = !view.rolled;
   standBtn.disabled = view.locked || !rolling;
 
