@@ -46,7 +46,7 @@ export default {
     name: 'Word Rush',
     emoji: '📝',
     tagline: 'Wordle en carrera',
-    description: 'Adivina la palabra de 5 letras antes que tus rivales. Verde = acierto, amarillo = letra en otra posición.',
+    description: 'Todos jugáis a la vez la misma palabra. El primero en acertarla gana. Verde = acierto, amarillo = letra en otra posición.',
     minPlayers: 2,
     maxPlayers: 4,
     gradient: 'linear-gradient(135deg, #22c55e, #16a34a)',
@@ -59,7 +59,6 @@ export default {
       secret: pickWord(),
       guesses,
       order: players.map((p) => p.id),
-      turn: players[0].id,
       status: 'playing',
       winner: null,
       lastGuess: null,
@@ -70,7 +69,6 @@ export default {
   action(state, playerId, action) {
     if (state.status !== 'playing') return { error: 'La partida ha terminado.' };
     if (action.type !== 'guess') return { error: 'Acción no válida.' };
-    if (state.turn !== playerId) return { error: 'No es tu turno.' };
     if (state.guesses[playerId].length >= MAX_GUESSES) return { error: 'Sin intentos.' };
 
     const word = normalize(action.word || '');
@@ -106,8 +104,6 @@ export default {
       return { state };
     }
 
-    const idx = state.order.indexOf(playerId);
-    state.turn = state.order[(idx + 1) % state.order.length];
     return { state };
   },
 
@@ -121,7 +117,6 @@ export default {
     return {
       myGuesses: mine,
       others,
-      turn: state.turn,
       status: state.status,
       winner: state.winner,
       lastGuess: state.lastGuess,
@@ -131,8 +126,9 @@ export default {
   },
 
   bots(state, botIds) {
-    if (state.status !== 'playing' || !botIds.has(state.turn)) return [];
-    const me = state.turn;
+    if (state.status !== 'playing') return [];
+    const me = state.order.find((id) => botIds.has(id) && (state.guesses[id]?.length || 0) < MAX_GUESSES);
+    if (!me) return [];
     const secret = state.secret;
     const known = state.guesses[me];
     const letters = 'AEIOURSTLNCPMDG'.split('');

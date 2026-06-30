@@ -8,6 +8,9 @@ let verbalCtx = null;
 let liveRoot = null;
 let openPopover = null;
 let pressTimer = null;
+let pickingCell = null;
+let pickingCoords = null;
+let suppressClick = false;
 
 function key(x, y) { return `${x},${y}`; }
 function label(x, y) { return `${ROWS[y]}${x + 1}`; }
@@ -113,6 +116,9 @@ function section(title, content) {
 }
 
 function closePopover() {
+  pickingCell?.classList.remove('bs-verbal-picking');
+  pickingCell = null;
+  pickingCoords = null;
   openPopover?.remove();
   openPopover = null;
 }
@@ -120,45 +126,80 @@ function closePopover() {
 function sendMark(board, x, y, mark) {
   if (!verbalCtx) return;
   if (mark === 'miss') SFX.bsMiss();
-  else SFX.bsHit();
+  else if (mark === 'hit') SFX.bsHit();
   verbalCtx.send({ type: 'markCell', board, x, y, mark, silent: true });
 }
 
 function sendSinkGroup(board, x, y) {
   if (!verbalCtx) return;
-  SFX.bsSunk();
+  const marks = board === 'enemy' ? verbalCtx.view.enemyMarks : verbalCtx.view.myIncoming;
+  if (marks?.[key(x, y)] === 'sunk') SFX.bsHit();
+  else SFX.bsSunk();
   verbalCtx.send({ type: 'sinkGroup', board, x, y, silent: true });
+}
+
+function positionPopover(pop, cell, stage) {
+  const rect = cell.getBoundingClientRect();
+  const stageRect = stage.getBoundingClientRect();
+  const gap = 8;
+  pop.style.visibility = 'hidden';
+  pop.style.transform = 'translateY(-50%)';
+  pop.style.top = `${rect.top - stageRect.top + rect.height / 2}px`;
+
+  requestAnimationFrame(() => {
+    const popW = pop.offsetWidth;
+    const popH = pop.offsetHeight;
+    let left = rect.right - stageRect.left + gap;
+    if (left + popW > stageRect.width - 4) {
+      left = rect.left - stageRect.left - popW - gap;
+    }
+    left = Math.max(4, Math.min(left, stageRect.width - popW - 4));
+    let top = rect.top - stageRect.top + rect.height / 2;
+    top = Math.max(popH / 2 + 4, Math.min(top, stageRect.height - popH / 2 - 4));
+    pop.style.left = `${left}px`;
+    pop.style.top = `${top}px`;
+    pop.style.visibility = 'visible';
+  });
+}
+
+function popoverButtons(cur) {
+  const items = [
+    { mark: 'miss', label: '💧 Agua', cls: 'miss' },
+    { mark: 'hit', label: '💥 Tocado', cls: 'hit' },
+  ];
+  if (cur) items.push({ mark: 'clear', label: '⬜ Blanco', cls: 'clear' });
+  return items;
 }
 
 function showPopover(cell, board, x, y) {
   closePopover();
   const marks = board === 'enemy' ? verbalCtx.view.enemyMarks : verbalCtx.view.myIncoming;
   const cur = marks?.[key(x, y)];
-  if (cur === 'sunk') return;
+
+  pickingCell = cell;
+  pickingCoords = { x, y };
+  cell.classList.add('bs-verbal-picking');
 
   const pop = document.createElement('div');
   pop.className = 'bs-verbal-pop';
-  pop.innerHTML = `
-    <button type="button" class="bs-verbal-pop-btn miss" data-mark="miss">💧 Agua</button>
-    <button type="button" class="bs-verbal-pop-btn hit" data-mark="hit">💥 Tocado</button>`;
-  pop.querySelector('[data-mark="miss"]').addEventListener('click', (e) => {
-    e.stopPropagation();
-    closePopover();
-    sendMark(board, x, y, 'miss');
-  });
-  pop.querySelector('[data-mark="hit"]').addEventListener('click', (e) => {
-    e.stopPropagation();
-    closePopover();
-    sendMark(board, x, y, 'hit');
+  popoverButtons(cur).forEach(({ mark, label, cls }) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `bs-verbal-pop-btn ${cls}${cur === mark ? ' active' : ''}`;
+    btn.dataset.mark = mark;
+    btn.textContent = label;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closePopover();
+      sendMark(board, x, y, mark);
+    });
+    pop.appendChild(btn);
   });
 
-  const rect = cell.getBoundingClientRect();
   const stage = verbalCtx.root.closest('#game-stage') || verbalCtx.root;
   stage.appendChild(pop);
-  const stageRect = stage.getBoundingClientRect();
-  pop.style.left = `${rect.left - stageRect.left + rect.width / 2}px`;
-  pop.style.top = `${rect.top - stageRect.top + rect.height / 2}px`;
   openPopover = pop;
+  positionPopover(pop, cell, stage);
 
   requestAnimationFrame(() => {
     document.addEventListener('click', onDocClick, { once: true });
@@ -166,19 +207,20 @@ function showPopover(cell, board, x, y) {
 }
 
 function onDocClick(e) {
-  if (openPopover && !openPopover.contains(e.target)) closePopover();
+  if (openPopover?.contains(e.target)) return;
+  if (e.target.closest('.bs-verbal-cell')) return;
+  closePopover();
 }
 
 function bindMarkCell(cell, board) {
   cell.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (!verbalCtx) return;
+    if (!verbalCtx || suppressClick) {
+      suppressClick = false;
+      return;
+    }
     const x = Number(cell.dataset.x);
     const y = Number(cell.dataset.y);
-    const marks = board === 'enemy' ? verbalCtx.view.enemyMarks : verbalCtx.view.myIncoming;
-    const cur = marks?.[key(x, y)];
-    if (cur === 'hit') return;
-    if (cur === 'sunk') return;
     showPopover(cell, board, x, y);
   });
 
@@ -187,9 +229,11 @@ function bindMarkCell(cell, board) {
     const x = Number(cell.dataset.x);
     const y = Number(cell.dataset.y);
     const marks = board === 'enemy' ? verbalCtx.view.enemyMarks : verbalCtx.view.myIncoming;
-    if (marks?.[key(x, y)] !== 'hit') return;
+    const cur = marks?.[key(x, y)];
+    if (cur !== 'hit' && cur !== 'sunk') return;
     pressTimer = setTimeout(() => {
       pressTimer = null;
+      suppressClick = true;
       closePopover();
       sendSinkGroup(board, x, y);
       cell.classList.add('bs-verbal-hold');
@@ -236,6 +280,10 @@ function refreshEnemyGrid(grid, marks) {
       if (!cell) continue;
       const mark = marks?.[key(x, y)];
       applyCellVisual(cell, markToVisual(mark, 'enemy'), false);
+      if (pickingCoords?.x === x && pickingCoords?.y === y) {
+        cell.classList.add('bs-verbal-picking');
+        pickingCell = cell;
+      }
     }
   }
 }
@@ -253,8 +301,8 @@ function patchVerbalDom(ctx, live) {
   const tip = live.querySelector('.bs-verbal-tip');
   if (tip) {
     tip.textContent = view.lastMark
-      ? `Última marca: ${view.lastMark.coord} → ${view.lastMark.mark === 'miss' ? 'Agua' : view.lastMark.mark === 'hit' ? 'Tocado' : 'Hundido'}`
-      : 'Abajo: toca una casilla → Agua o Tocado · Mantén pulsado en tocado para hundir';
+      ? `Última marca: ${view.lastMark.coord} → ${view.lastMark.mark === null ? 'Blanco' : view.lastMark.mark === 'miss' ? 'Agua' : view.lastMark.mark === 'hit' ? 'Tocado' : 'Hundido'}`
+      : 'Toca para marcar o cambiar · Mantén pulsado: tocado ↔ hundido';
   }
 }
 
@@ -297,8 +345,9 @@ function mountVerbalDom(ctx) {
   resultKey.className = 'bs-result-key';
   resultKey.innerHTML = `
     <span><i class="bs-key-dot hit"></i> Tocado</span>
-    <span><i class="bs-key-dot sunk"></i> Hundido (mantén pulsado)</span>
-    <span><i class="bs-key-dot miss"></i> Agua</span>`;
+    <span><i class="bs-key-dot sunk"></i> Hundido</span>
+    <span><i class="bs-key-dot miss"></i> Agua</span>
+    <span>⬜ Blanco = borrar marca</span>`;
   liveRoot.appendChild(resultKey);
 
   root.appendChild(liveRoot);
@@ -321,4 +370,5 @@ export function resetVerbalState() {
   closePopover();
   verbalCtx = null;
   liveRoot = null;
+  suppressClick = false;
 }

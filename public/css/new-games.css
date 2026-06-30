@@ -93,7 +93,8 @@
 .wr-hint { font-weight: 600; min-height: 1.3em; color: var(--muted); }
 
 /* --- Dados Duelo --- */
-.dy-wrap { width: min(96vw, 400px); text-align: center; margin: 0 auto; }
+.dy-rules { font-size: 0.88rem; color: var(--muted); margin-bottom: 10px; line-height: 1.45; padding: 0 4px; }
+.dy-die.empty { opacity: 0.55; border-style: dashed; }
 .dy-head { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
 .dy-round { font-weight: 600; color: var(--muted); margin-bottom: 10px; }
 .dy-dice { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }

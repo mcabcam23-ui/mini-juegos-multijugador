@@ -20,7 +20,7 @@ export default {
     name: 'Dados Duelo',
     emoji: '🎲',
     tagline: 'Suma máxima con 5 dados',
-    description: 'Lanza 5 dados, retén los que quieras y vuelve a tirar. Gana la ronda quien sume más. ¡Primero a 3 rondas!',
+    description: 'Cada ronda: tiráis 5 dados, podéis retener y relanzar hasta 2 veces, y confirmáis. Gana quien sume más; primero a 3 rondas.',
     minPlayers: 2,
     maxPlayers: 2,
     gradient: 'linear-gradient(135deg, #eab308, #f97316)',
@@ -32,12 +32,14 @@ export default {
     const holds = {};
     const rerollsLeft = {};
     const locked = {};
+    const rolled = {};
     for (const p of players) {
       roundWins[p.id] = 0;
-      dice[p.id] = rollAll();
+      dice[p.id] = null;
       holds[p.id] = [false, false, false, false, false];
       rerollsLeft[p.id] = REROLLS;
       locked[p.id] = false;
+      rolled[p.id] = false;
     }
     return {
       order: players.map((p) => p.id),
@@ -47,6 +49,7 @@ export default {
       holds,
       rerollsLeft,
       locked,
+      rolled,
       phase: 'rolling',
       lastRoll: null,
       roundResult: null,
@@ -66,10 +69,11 @@ export default {
     if (action.type === '_nextRound') {
       if (state.status === 'finished') return { state };
       for (const id of state.order) {
-        state.dice[id] = rollAll();
+        state.dice[id] = null;
         state.holds[id] = [false, false, false, false, false];
         state.rerollsLeft[id] = REROLLS;
         state.locked[id] = false;
+        state.rolled[id] = false;
       }
       state.round += 1;
       state.phase = 'rolling';
@@ -80,6 +84,7 @@ export default {
 
     if (action.type === 'toggleHold') {
       if (state.locked[playerId]) return { error: 'Ya has confirmado.' };
+      if (!state.rolled[playerId]) return { error: 'Tira los dados primero.' };
       const i = action.index;
       if (typeof i !== 'number' || i < 0 || i > 4) return { error: 'Dado no válido.' };
       state.holds[playerId][i] = !state.holds[playerId][i];
@@ -88,6 +93,12 @@ export default {
 
     if (action.type === 'roll') {
       if (state.locked[playerId]) return { error: 'Ya has confirmado.' };
+      if (!state.rolled[playerId]) {
+        state.dice[playerId] = rollAll();
+        state.rolled[playerId] = true;
+        state.lastRoll = { by: playerId };
+        return { state };
+      }
       if (state.rerollsLeft[playerId] <= 0) return { error: 'Sin relanzamientos.' };
       const d = state.dice[playerId];
       for (let i = 0; i < 5; i++) {
@@ -100,6 +111,7 @@ export default {
 
     if (action.type === 'stand') {
       if (state.locked[playerId]) return { error: 'Ya has confirmado.' };
+      if (!state.rolled[playerId]) return { error: 'Tira los dados primero.' };
       state.locked[playerId] = true;
 
       if (state.order.every((id) => state.locked[id])) {
@@ -122,7 +134,7 @@ export default {
           state.status = 'finished';
           state.winner = state.roundWins[a] >= ROUNDS_TO_WIN ? a : b;
         }
-        return { state, delayedAction: { type: '_nextRound', delayMs: 2800 } };
+        return { state, delayedAction: { type: '_nextRound', delayMs: 3200 } };
       }
       return { state };
     }
@@ -139,7 +151,9 @@ export default {
       holds: state.holds[playerId],
       rerollsLeft: state.rerollsLeft[playerId],
       locked: state.locked[playerId],
+      rolled: state.rolled[playerId],
       oppLocked: opp ? state.locked[opp] : false,
+      oppRolled: opp ? state.rolled[opp] : false,
       phase: state.phase,
       roundResult: state.roundResult,
       status: state.status,
@@ -153,6 +167,9 @@ export default {
     if (state.phase === 'reveal') return [];
     for (const id of state.order) {
       if (!botIds.has(id) || state.locked[id]) continue;
+      if (!state.rolled[id]) {
+        return [{ playerId: id, action: { type: 'roll' } }];
+      }
       if (state.rerollsLeft[id] > 0 && sum(state.dice[id]) < 18) {
         return [{ playerId: id, action: { type: 'roll' } }];
       }

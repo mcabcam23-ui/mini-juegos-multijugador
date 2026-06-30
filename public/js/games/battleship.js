@@ -42,13 +42,10 @@ function isValid(cells, except = -1) {
   });
   for (const c of cells) {
     if (occ.has(key(c.x, c.y))) return false;
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        if (!dx && !dy) continue;
-        const nx = c.x + dx;
-        const ny = c.y + dy;
-        if (occ.has(key(nx, ny))) return false;
-      }
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = c.x + dx;
+      const ny = c.y + dy;
+      if (occ.has(key(nx, ny))) return false;
     }
   }
   return true;
@@ -407,7 +404,7 @@ function patchPlacementControls(wrap, verbal = false) {
   const hint = wrap.querySelector('.bs-hint:not(.bs-verbal-place-hint)');
   if (hint) {
     hint.textContent = verbal
-      ? 'Los barcos no pueden tocarse: deja al menos una casilla libre entre ellos.'
+      ? 'Los barcos pueden tocarse por las esquinas, pero no por los lados.'
       : 'Selecciona un barco, haz clic en el tablero para colocarlo. Clic en un barco colocado para quitarlo.';
   }
 }
@@ -428,7 +425,7 @@ function onPlacementCellClick(ctx, x, y) {
   }
   const cells = cellsFor(x, y, fleet[selected].size, orientation);
   if (!isValid(cells, selected)) {
-    ctx.toast('No puedes colocar ahí (deja separación entre barcos).', 'error');
+    ctx.toast('No puedes colocar ahí (los barcos no pueden tocarse por los lados).', 'error');
     return;
   }
   placed[selected] = cells;
@@ -530,7 +527,7 @@ function renderPlacement(ctx, verbal = false) {
   const hint = document.createElement('p');
   hint.className = 'bs-hint';
   hint.textContent = verbal
-    ? 'Los barcos no pueden tocarse: deja al menos una casilla libre entre ellos.'
+    ? 'Los barcos pueden tocarse por las esquinas, pero no por los lados.'
     : 'Selecciona un barco, haz clic en el tablero para colocarlo. Clic en un barco colocado para quitarlo.';
   placementLive.appendChild(hint);
   root.appendChild(placementLive);

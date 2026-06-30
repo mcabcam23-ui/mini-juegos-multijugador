@@ -13,8 +13,7 @@ let lastCtx = null;
 export default function render(ctx) {
   lastCtx = ctx;
   const { view, me, root } = ctx;
-  const myTurn = view.turn === me && view.status === 'playing';
-  const canGuess = myTurn && view.myGuesses.length < view.maxGuesses;
+  const canGuess = view.status === 'playing' && view.myGuesses.length < view.maxGuesses;
 
   if (!liveRoot || !root.contains(liveRoot)) {
     root.innerHTML = '';
@@ -52,9 +51,9 @@ export default function render(ctx) {
   const head = liveRoot.querySelector('.wr-head');
   head.innerHTML = '';
   Object.entries(view.others || {}).forEach(([id, count]) => {
-    head.appendChild(buildScoreChip(ctx, id, `${count}/${view.maxGuesses}`, view.turn === id));
+    head.appendChild(buildScoreChip(ctx, id, `${count}/${view.maxGuesses}`, false));
   });
-  head.appendChild(buildScoreChip(ctx, me, `${view.myGuesses.length}/${view.maxGuesses}`, myTurn));
+  head.appendChild(buildScoreChip(ctx, me, `${view.myGuesses.length}/${view.maxGuesses}`, canGuess));
 
   const grid = liveRoot.querySelector('.wr-grid');
   grid.innerHTML = '';
@@ -91,10 +90,10 @@ export default function render(ctx) {
       else SFX.draw();
     }
   } else if (canGuess) {
-    hint.textContent = '⌨️ Escribe tu palabra de 5 letras';
+    hint.textContent = '⌨️ Carrera: escribe tu palabra de 5 letras cuando quieras';
     inviteTurn(hint);
   } else {
-    hint.textContent = `Turno de ${ctx.nameOf(view.turn)}`;
+    hint.textContent = 'Esperando a que terminen los demás…';
   }
 
   if (view.myGuesses.length > prevGuessCount) {
@@ -112,7 +111,7 @@ function onKey(ch) {
   const ctx = lastCtx;
   if (!ctx) return;
   const { view, me } = ctx;
-  if (view.status !== 'playing' || view.turn !== me) return;
+  if (view.status !== 'playing') return;
   if (view.myGuesses.length >= view.maxGuesses || draft.length >= COLS) return;
   draft += ch;
   SFX.wrType();
@@ -130,7 +129,7 @@ function onSubmit() {
 function syncDraftUI() {
   if (!liveRoot) return;
   const ctx = lastCtx;
-  const canGuess = ctx && ctx.view.turn === ctx.me && ctx.view.status === 'playing' && ctx.view.myGuesses.length < ctx.view.maxGuesses;
+  const canGuess = ctx && ctx.view.status === 'playing' && ctx.view.myGuesses.length < ctx.view.maxGuesses;
   liveRoot.querySelector('.wr-send').disabled = draft.length !== COLS || !canGuess;
   const grid = liveRoot.querySelector('.wr-grid');
   if (!grid || !ctx) return;

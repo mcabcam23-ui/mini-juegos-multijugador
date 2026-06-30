@@ -18,13 +18,15 @@ export default function render(ctx) {
     liveRoot = document.createElement('div');
     liveRoot.className = 'dy-wrap';
     liveRoot.innerHTML = `
+      <p class="dy-rules">Cada ronda: <strong>tira 5 dados</strong> → (opcional) retén y relanza hasta 2 veces → <strong>confirmar</strong>. Gana quien sume más.</p>
       <div class="dy-head"></div>
       <p class="dy-round"></p>
       <div class="dy-dice"></div>
       <p class="dy-sum"></p>
       <div class="dy-actions">
-        <button type="button" class="btn btn-ghost dy-roll">🎲 Relanzar</button>
-        <button type="button" class="btn btn-primary dy-stand">✓ Confirmar</button>
+        <button type="button" class="btn btn-primary dy-roll">🎲 Tirar 5 dados</button>
+        <button type="button" class="btn btn-ghost dy-reroll" hidden>↻ Relanzar</button>
+        <button type="button" class="btn btn-primary dy-stand" hidden>✓ Confirmar</button>
       </div>
       <div class="dy-reveal" hidden></div>
       <p class="dy-hint"></p>`;
@@ -36,9 +38,15 @@ export default function render(ctx) {
       c.send({ type: 'roll' });
       SFX.dyRoll();
     });
+    liveRoot.querySelector('.dy-reroll').addEventListener('click', () => {
+      const c = lastCtx;
+      if (!c || c.view.locked || !c.view.rolled) return;
+      c.send({ type: 'roll' });
+      SFX.dyRoll();
+    });
     liveRoot.querySelector('.dy-stand').addEventListener('click', () => {
       const c = lastCtx;
-      if (!c || c.view.locked) return;
+      if (!c || c.view.locked || !c.view.rolled) return;
       c.send({ type: 'stand' });
       SFX.dyLock();
     });
@@ -49,30 +57,42 @@ export default function render(ctx) {
   head.appendChild(buildScoreChip(ctx, me, `${view.roundWins[me]}/${view.target}`, rolling && !view.locked));
   if (oppId) head.appendChild(buildScoreChip(ctx, oppId, `${view.roundWins[oppId]}/${view.target}`, false));
 
-  liveRoot.querySelector('.dy-round').textContent = `Ronda ${view.round} · Relanzos: ${view.rerollsLeft}`;
+  const roundEl = liveRoot.querySelector('.dy-round');
+  if (view.rolled) {
+    roundEl.textContent = `Ronda ${view.round} · Relanzos restantes: ${view.rerollsLeft}`;
+  } else {
+    roundEl.textContent = `Ronda ${view.round} · Pulsa «Tirar 5 dados» para empezar`;
+  }
 
   const diceEl = liveRoot.querySelector('.dy-dice');
   diceEl.innerHTML = '';
-  (view.dice || []).forEach((v, i) => {
+  const dice = view.rolled ? (view.dice || []) : Array(5).fill(null);
+  dice.forEach((v, i) => {
     const d = document.createElement('button');
     d.type = 'button';
-    d.className = 'dy-die' + (view.holds[i] ? ' held' : '');
-    d.textContent = v;
-    d.disabled = view.locked || !rolling;
+    d.className = 'dy-die' + (view.holds?.[i] ? ' held' : '') + (v == null ? ' empty' : '');
+    d.textContent = v == null ? '?' : v;
+    d.disabled = view.locked || !rolling || !view.rolled;
     d.addEventListener('click', () => {
-      if (view.locked || !rolling) return;
+      if (view.locked || !rolling || !view.rolled) return;
       send({ type: 'toggleHold', index: i });
       SFX.dyHold();
     });
     diceEl.appendChild(d);
   });
 
-  const sum = (view.dice || []).reduce((a, b) => a + b, 0);
-  liveRoot.querySelector('.dy-sum').textContent = `Suma: ${sum}`;
+  const sum = view.rolled ? (view.dice || []).reduce((a, b) => a + b, 0) : null;
+  liveRoot.querySelector('.dy-sum').textContent = sum == null ? 'Suma: —' : `Suma: ${sum}`;
 
   const rollBtn = liveRoot.querySelector('.dy-roll');
+  const rerollBtn = liveRoot.querySelector('.dy-reroll');
   const standBtn = liveRoot.querySelector('.dy-stand');
-  rollBtn.disabled = view.locked || !rolling || view.rerollsLeft <= 0;
+
+  rollBtn.hidden = view.rolled;
+  rollBtn.disabled = view.locked || !rolling;
+  rerollBtn.hidden = !view.rolled;
+  rerollBtn.disabled = view.locked || !rolling || view.rerollsLeft <= 0;
+  standBtn.hidden = !view.rolled;
   standBtn.disabled = view.locked || !rolling;
 
   const reveal = liveRoot.querySelector('.dy-reveal');
@@ -101,9 +121,12 @@ export default function render(ctx) {
       else SFX.gameLose(ctx.meta.id);
     }
   } else if (view.locked) {
-    hint.textContent = view.oppLocked ? '⏳ Revelando…' : '✓ Confirmado — esperando rival';
+    hint.textContent = view.oppLocked ? '⏳ Comparando sumas…' : '✓ Confirmado — esperando al rival';
+  } else if (!view.rolled) {
+    hint.textContent = '🎲 Empieza tirando tus 5 dados';
+    inviteTurn(hint);
   } else if (rolling) {
-    hint.textContent = '🎲 Retén dados y relanza o confirma';
+    hint.textContent = 'Toca un dado para retenerlo · Relanza o confirma cuando quieras';
     inviteTurn(hint);
   }
 

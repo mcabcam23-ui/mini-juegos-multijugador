@@ -39,7 +39,7 @@ export default {
     name: 'Código Secreto',
     emoji: '🔐',
     tagline: 'Descifra la combinación',
-    description: 'Adivina la combinación de 4 colores en 10 intentos. Negro = acierto exacto, blanco = color correcto en otra posición.',
+    description: 'La misma combinación secreta para ambos. Jugáis a la vez: el primero en descifrarla gana. ● negro = acierto, ○ blanco = color en otra posición.',
     minPlayers: 2,
     maxPlayers: 2,
     gradient: 'linear-gradient(135deg, #6366f1, #ec4899)',
@@ -53,7 +53,6 @@ export default {
       secret,
       guesses,
       order: players.map((p) => p.id),
-      turn: players[0].id,
       status: 'playing',
       winner: null,
       lastResult: null,
@@ -64,7 +63,6 @@ export default {
   action(state, playerId, action) {
     if (state.status !== 'playing') return { error: 'La partida ha terminado.' };
     if (action.type !== 'guess') return { error: 'Acción no válida.' };
-    if (state.turn !== playerId) return { error: 'No es tu turno.' };
     if (state.guesses[playerId].length >= MAX_GUESSES) return { error: 'Sin intentos restantes.' };
 
     const guess = action.colors;
@@ -100,8 +98,6 @@ export default {
       return { state };
     }
 
-    const idx = state.order.indexOf(playerId);
-    state.turn = state.order[(idx + 1) % state.order.length];
     return { state };
   },
 
@@ -109,7 +105,6 @@ export default {
     return {
       guesses: state.guesses[playerId] || [],
       oppGuessCount: state.guesses[state.order.find((id) => id !== playerId)]?.length || 0,
-      turn: state.turn,
       status: state.status,
       winner: state.winner,
       lastResult: state.lastResult,
@@ -121,8 +116,9 @@ export default {
   },
 
   bots(state, botIds) {
-    if (state.status !== 'playing' || !botIds.has(state.turn)) return [];
-    const me = state.turn;
+    if (state.status !== 'playing') return [];
+    const me = state.order.find((id) => botIds.has(id) && (state.guesses[id]?.length || 0) < MAX_GUESSES);
+    if (!me) return [];
     const history = state.guesses[me];
     const pool = [...COLORS];
     let guess;

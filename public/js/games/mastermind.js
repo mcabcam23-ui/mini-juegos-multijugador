@@ -12,7 +12,7 @@ let lastCtx = null;
 export default function render(ctx) {
   lastCtx = ctx;
   const { view, send, me, root } = ctx;
-  const myTurn = view.turn === me && view.status === 'playing';
+  const canGuess = view.status === 'playing' && view.guesses.length < view.maxGuesses;
 
   if (!liveRoot || !root.contains(liveRoot)) {
     root.innerHTML = '';
@@ -64,7 +64,7 @@ export default function render(ctx) {
 
   const hint = liveRoot.querySelector('.mm-hint');
   const submit = liveRoot.querySelector('.mm-submit');
-  submit.disabled = pick.length !== view.codeLen || !myTurn;
+  submit.disabled = pick.length !== view.codeLen || !canGuess;
 
   if (view.status === 'finished') {
     hint.innerHTML = view.winner === me
@@ -80,11 +80,11 @@ export default function render(ctx) {
       else if (view.winner) SFX.gameLose(ctx.meta.id);
       else SFX.draw();
     }
-  } else if (myTurn) {
-    hint.textContent = '🎯 Tu turno — monta tu combinación';
+  } else if (canGuess) {
+    hint.textContent = '🎯 Carrera: monta tu combinación y comprueba';
     inviteTurn(hint);
   } else {
-    hint.textContent = `Esperando a ${ctx.nameOf(view.turn)}…`;
+    hint.textContent = 'Sin intentos — observa al rival';
   }
 
   if (view.guesses.length > prevGuessCount) {
@@ -102,7 +102,7 @@ function onColorPick(c) {
   const ctx = lastCtx;
   if (!ctx) return;
   const { view, me } = ctx;
-  if (view.status !== 'playing' || view.turn !== me) return;
+  if (view.status !== 'playing' || view.guesses.length >= view.maxGuesses) return;
   if (pick.length >= view.codeLen) pick.shift();
   pick.push(c);
   SFX.mmPick();

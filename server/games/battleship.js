@@ -61,14 +61,13 @@ function validatePlacement(ships) {
 
   for (const [k, si] of owner) {
     const [x, y] = k.split(',').map(Number);
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        if (!dx && !dy) continue;
-        const nx = x + dx;
-        const ny = y + dy;
-        if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) continue;
-        const other = owner.get(key(nx, ny));
-        if (other !== undefined && other !== si) return 'Los barcos deben tener al menos una casilla de separación.';
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) continue;
+      const other = owner.get(key(nx, ny));
+      if (other !== undefined && other !== si) {
+        return 'Los barcos no pueden estar pegados por los lados.';
       }
     }
   }
@@ -372,11 +371,16 @@ function actionVerbal(state, playerId, action) {
     }
     const k = key(x, y);
     const mark = action.mark;
+    const target = which === 'enemy' ? manual.enemyMarks : board.incoming;
+
+    if (mark === 'clear') {
+      delete target[k];
+      manual.lastMark = { board: which, x, y, mark: null, coord: coordLabel(x, y) };
+      return { state };
+    }
     if (mark !== 'miss' && mark !== 'hit') return { error: 'Marca no válida.' };
 
-    const target = which === 'enemy' ? manual.enemyMarks : board.incoming;
     target[k] = mark;
-
     manual.lastMark = { board: which, x, y, mark, coord: coordLabel(x, y) };
     return { state };
   }
@@ -390,23 +394,19 @@ function actionVerbal(state, playerId, action) {
     }
     const marks = which === 'enemy' ? manual.enemyMarks : board.incoming;
     const k = key(x, y);
-    if (marks[k] !== 'hit') return { error: 'Mantén pulsado sobre una casilla tocada.' };
+    const cur = marks[k];
 
-    const cluster = new Set();
-    const stack = [[x, y]];
-    while (stack.length) {
-      const [cx, cy] = stack.pop();
-      const ck = key(cx, cy);
-      if (marks[ck] !== 'hit' || cluster.has(ck)) continue;
-      cluster.add(ck);
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        const nx = cx + dx;
-        const ny = cy + dy;
-        if (nx >= 0 && ny >= 0 && nx < SIZE && ny < SIZE && marks[key(nx, ny)] === 'hit') {
-          stack.push([nx, ny]);
-        }
-      }
+    if (cur === 'sunk') {
+      const cluster = collectCluster(marks, x, y, 'sunk');
+      if (!cluster.size) return { error: 'No hay casillas hundidas aquí.' };
+      for (const ck of cluster) marks[ck] = 'hit';
+      manual.lastMark = { board: which, x, y, mark: 'hit', coord: coordLabel(x, y) };
+      return { state };
     }
+
+    if (cur !== 'hit') return { error: 'Mantén pulsado sobre tocado o hundido.' };
+
+    const cluster = collectCluster(marks, x, y, 'hit');
     for (const ck of cluster) marks[ck] = 'sunk';
     manual.lastMark = { board: which, x, y, mark: 'sunk', coord: coordLabel(x, y) };
     return { state };
@@ -419,6 +419,25 @@ function actionVerbal(state, playerId, action) {
   }
 
   return { error: 'Acción no válida.' };
+}
+
+function collectCluster(marks, x, y, kind) {
+  const cluster = new Set();
+  const stack = [[x, y]];
+  while (stack.length) {
+    const [cx, cy] = stack.pop();
+    const ck = key(cx, cy);
+    if (marks[ck] !== kind || cluster.has(ck)) continue;
+    cluster.add(ck);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = cx + dx;
+      const ny = cy + dy;
+      if (nx >= 0 && ny >= 0 && nx < SIZE && ny < SIZE && marks[key(nx, ny)] === kind) {
+        stack.push([nx, ny]);
+      }
+    }
+  }
+  return cluster;
 }
 
 function randomPlacement() {

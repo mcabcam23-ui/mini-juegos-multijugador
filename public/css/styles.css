@@ -699,7 +699,7 @@ input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px
 .bs-verbal-pop {
   position: absolute;
   z-index: 40;
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -709,6 +709,13 @@ input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 12px 32px rgba(0,0,0,.5);
   min-width: 120px;
+}
+
+.bs-verbal-cell.bs-verbal-picking {
+  outline: 3px solid #fbbf24;
+  outline-offset: -2px;
+  z-index: 2;
+  box-shadow: 0 0 0 2px rgba(251,191,36,.35), inset 0 0 12px rgba(251,191,36,.25);
 }
 
 .bs-verbal-pop-btn {
@@ -730,6 +737,15 @@ input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px
 .bs-verbal-pop-btn.hit {
   background: rgba(220,38,38,.15);
   color: #fca5a5;
+}
+
+.bs-verbal-pop-btn.clear {
+  background: rgba(148,163,184,.15);
+  color: #cbd5e1;
+}
+
+.bs-verbal-pop-btn.active {
+  box-shadow: inset 0 0 0 2px rgba(251,191,36,.75);
 }
 
 #game-stage[data-game="battleship"] {
