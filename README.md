@@ -40,7 +40,54 @@ npm install
 npm start
 ```
 
-Abre **http://localhost:3000** en tu navegador. Para jugar con otra persona en tu misma red, comparte tu IP local (p. ej. `http://192.168.1.50:3000`). Para internet, despliega en cualquier hosting de Node (Render, Railway, Fly.io, etc.).
+Abre **http://localhost:3000** en tu navegador. Para jugar con otra persona en tu misma red, comparte tu IP local (p. ej. `http://192.168.1.50:3000`).
+
+## 🌐 Jugar con amigos desde fuera (Render, gratis)
+
+Una sola vez subes la app; luego solo compartís el enlace y el **código de sala**.
+
+### 1. Sube el código a GitHub
+
+Si aún no lo has hecho:
+
+```bash
+git remote add origin https://github.com/TU_USUARIO/TU_REPO.git
+git push -u origin main
+```
+
+### 2. Crea el servicio en Render
+
+1. Entra en [render.com](https://render.com) e inicia sesión con GitHub.
+2. **New +** → **Web Service**.
+3. Conecta tu repositorio.
+4. Configuración:
+   - **Runtime:** Node
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Plan:** Free
+5. Pulsa **Create Web Service** y espera el deploy (~2–5 min).
+
+> También puedes usar **New + → Blueprint** si Render detecta el archivo `render.yaml` del repo.
+
+### 3. Comparte el enlace con tus amigos
+
+Te dará una URL fija, por ejemplo:
+
+`https://arcade-minijuegos.onrender.com`
+
+Guárdala en el móvil o en un grupo de WhatsApp. **No hace falta que nadie más la conozca** si no la compartís.
+
+### 4. A jugar (solo código)
+
+1. Todos abren **la misma URL**.
+2. Uno elige juego → se crea la sala → aparece el código (ej. `ABCD`).
+3. Los demás pulsan **Unirme con un código** e introducen ese código.
+
+### Notas del plan gratis
+
+- Si nadie entra un rato, el servidor se “duerme”; la **primera carga puede tardar ~30 s**.
+- La URL es pública técnicamente, pero **solo entra quien tenga el enlace** (no aparece en buscadores).
+- No necesitas Tailscale, ngrok ni dejar tu PC encendido.
 
 Modo desarrollo (recarga al guardar):
 

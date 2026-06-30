@@ -11,8 +11,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
 
 const app = express();
+app.set('trust proxy', 1);
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: '*' } });
+const io = new Server(httpServer, {
+  cors: { origin: '*' },
+  transports: ['websocket', 'polling'],
+});
 
 const manager = new RoomManager();
 
@@ -389,7 +393,6 @@ io.on('connection', (socket) => {
 
 setInterval(() => manager.sweep(), 5 * 60 * 1000);
 
-httpServer.listen(PORT, () => {
-  console.log(`\n🎮  Mini Juegos Multijugador en marcha`);
-  console.log(`👉  http://localhost:${PORT}\n`);
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🎮  Mini Juegos Multijugador en marcha (puerto ${PORT})\n`);
 });

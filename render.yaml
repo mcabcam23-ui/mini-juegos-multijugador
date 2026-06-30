@@ -1,0 +1,9 @@
+# Despliegue en Render (gratis): conecta tu repo y usa "Blueprint" o crea Web Service manual.
+services:
+  - type: web
+    name: arcade-minijuegos
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
