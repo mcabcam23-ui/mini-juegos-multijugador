@@ -35,8 +35,23 @@ function occupiedSet(except = -1) {
 
 function isValid(cells, except = -1) {
   if (!cells.every((c) => c.x >= 0 && c.y >= 0 && c.x < SIZE && c.y < SIZE)) return false;
-  const occ = occupiedSet(except);
-  return cells.every((c) => !occ.has(key(c.x, c.y)));
+  const occ = new Map();
+  placed.forEach((shipCells, i) => {
+    if (i === except || !shipCells) return;
+    shipCells.forEach((c) => occ.set(key(c.x, c.y), i));
+  });
+  for (const c of cells) {
+    if (occ.has(key(c.x, c.y))) return false;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nx = c.x + dx;
+        const ny = c.y + dy;
+        if (occ.has(key(nx, ny))) return false;
+      }
+    }
+  }
+  return true;
 }
 
 function randomize() {
@@ -334,7 +349,13 @@ function markupSunk() {
 }
 export default function render(ctx) {
   if (ctx.view.playMode === 'verbal') {
-    renderVerbal(ctx);
+    ensureInit(ctx);
+    if (ctx.view.phase === 'placement') {
+      battleFxReady = false;
+      renderPlacement(ctx, true);
+    } else {
+      renderVerbal(ctx);
+    }
     prevPhase = ctx.view.phase;
     return;
   }
@@ -378,19 +399,26 @@ function patchPlacementPalette(pal) {
   });
 }
 
-function patchPlacementControls(wrap) {
+function patchPlacementControls(wrap, verbal = false) {
   const ready = wrap.querySelector('.bs-ready-btn');
   if (ready) ready.disabled = !placed.every(Boolean);
   const rot = wrap.querySelector('.bs-rotate-btn');
   if (rot) rot.textContent = '🔄 Girar ' + (orientation === 'h' ? '↔' : '↕');
+  const hint = wrap.querySelector('.bs-hint:not(.bs-verbal-place-hint)');
+  if (hint) {
+    hint.textContent = verbal
+      ? 'Los barcos no pueden tocarse: deja al menos una casilla libre entre ellos.'
+      : 'Selecciona un barco, haz clic en el tablero para colocarlo. Clic en un barco colocado para quitarlo.';
+  }
 }
 
 function onPlacementCellClick(ctx, x, y) {
+  const verbal = ctx.view.playMode === 'verbal';
   const idx = placed.findIndex((cells) => cells?.some((c) => c.x === x && c.y === y));
   if (idx >= 0) {
     placed[idx] = null;
     selected = idx;
-    patchPlacementUI(ctx);
+    patchPlacementUI(ctx, verbal);
     return;
   }
   if (selected < 0 || placed[selected]) {
@@ -400,27 +428,27 @@ function onPlacementCellClick(ctx, x, y) {
   }
   const cells = cellsFor(x, y, fleet[selected].size, orientation);
   if (!isValid(cells, selected)) {
-    ctx.toast('No puedes colocar ahí.', 'error');
+    ctx.toast('No puedes colocar ahí (deja separación entre barcos).', 'error');
     return;
   }
   placed[selected] = cells;
   const next = placed.findIndex((c) => !c);
   selected = next < 0 ? selected : next;
-  patchPlacementUI(ctx);
+  patchPlacementUI(ctx, verbal);
 }
 
-function patchPlacementUI(ctx) {
+function patchPlacementUI(ctx, verbal = false) {
   if (!placementLive) {
-    renderPlacement(ctx);
+    renderPlacement(ctx, verbal);
     return;
   }
   patchPlacementPalette(placementLive.querySelector('.bs-palette'));
   patchPlacementBoard();
-  patchPlacementControls(placementLive);
+  patchPlacementControls(placementLive, verbal);
 }
 
 /* ===== Colocación ===== */
-function renderPlacement(ctx) {
+function renderPlacement(ctx, verbal = false) {
   const { view, root, send, toast } = ctx;
 
   if (view.myReady) {
@@ -429,30 +457,39 @@ function renderPlacement(ctx) {
     root.innerHTML = '';
     const wrap = document.createElement('div');
     wrap.className = 'bs-game bs-placement';
-    wrap.innerHTML = `<div class="bs-title">🚢 Tocado y Hundido</div>`;
+    wrap.innerHTML = `<div class="bs-title">🚢 Tocado y Hundido${verbal ? ' <span class="bs-mode-badge">Modo verbal</span>' : ''}</div>`;
     wrap.appendChild(section('Tu flota', buildBoard({ mode: 'own', ships: view.myShips, incoming: {} }, null, false)));
     const wait = document.createElement('p');
     wait.className = 'bs-status';
-    wait.textContent = view.enemyReady ? '⚔️ Comenzando batalla…' : '⏳ Esperando a que tu rival coloque su flota…';
+    wait.textContent = view.enemyReady
+      ? (verbal ? '⚔️ Comenzando partida…' : '⚔️ Comenzando batalla…')
+      : '⏳ Esperando a que tu rival pulse Comenzar…';
     wrap.appendChild(wait);
     root.appendChild(wrap);
     return;
   }
 
   if (placementLive && root.contains(placementLive)) {
-    patchPlacementUI(ctx);
+    patchPlacementUI(ctx, verbal);
     return;
   }
 
   root.innerHTML = '';
   placementLive = document.createElement('div');
   placementLive.className = 'bs-game bs-placement';
-  placementLive.innerHTML = `<div class="bs-title">🚢 Tocado y Hundido</div>`;
+  placementLive.innerHTML = `<div class="bs-title">🚢 Tocado y Hundido${verbal ? ' <span class="bs-mode-badge">Modo verbal</span>' : ''}</div>`;
+
+  if (verbal) {
+    const intro = document.createElement('p');
+    intro.className = 'bs-hint bs-verbal-place-hint';
+    intro.textContent = '🗣️ Coloca tu flota aquí. Cuando ambos pulsen Comenzar, hablad las coordenadas en voz y marcáis los resultados.';
+    placementLive.appendChild(intro);
+  }
 
   const pal = buildFleetPalette(
     fleet, placed, selected,
-    (i) => { selected = i; patchPlacementUI(ctx); },
-    (i) => { placed[i] = null; selected = i; patchPlacementUI(ctx); },
+    (i) => { selected = i; patchPlacementUI(ctx, verbal); },
+    (i) => { placed[i] = null; selected = i; patchPlacementUI(ctx, verbal); },
   );
   placementLive.appendChild(pal);
 
@@ -472,17 +509,17 @@ function renderPlacement(ctx) {
 
   const controls = document.createElement('div');
   controls.className = 'bs-controls';
-  const rot = ctrl('🔄 Girar ↔', () => { orientation = orientation === 'h' ? 'v' : 'h'; patchPlacementUI(ctx); });
+  const rot = ctrl('🔄 Girar ↔', () => { orientation = orientation === 'h' ? 'v' : 'h'; patchPlacementUI(ctx, verbal); });
   rot.className = 'btn btn-ghost bs-rotate-btn';
   controls.append(
     rot,
-    ctrl('🎲 Aleatorio', () => { randomize(); patchPlacementUI(ctx); }),
-    ctrl('🗑️ Borrar todo', () => { placed = fleet.map(() => null); selected = 0; patchPlacementUI(ctx); }),
+    ctrl('🎲 Aleatorio', () => { randomize(); patchPlacementUI(ctx, verbal); }),
+    ctrl('🗑️ Borrar todo', () => { placed = fleet.map(() => null); selected = 0; patchPlacementUI(ctx, verbal); }),
   );
   const ready = document.createElement('button');
   ready.type = 'button';
   ready.className = 'btn btn-primary bs-ready-btn';
-  ready.textContent = '⚓ ¡Flota lista!';
+  ready.textContent = verbal ? '▶ Comenzar' : '⚓ ¡Flota lista!';
   ready.addEventListener('click', () => {
     if (!placed.every(Boolean)) return toast('Coloca los 10 barcos.', 'error');
     send({ type: 'placeShips', ships: placed.map((cells) => ({ cells })) });
@@ -492,10 +529,12 @@ function renderPlacement(ctx) {
 
   const hint = document.createElement('p');
   hint.className = 'bs-hint';
-  hint.textContent = 'Selecciona un barco, haz clic en el tablero para colocarlo. Clic en un barco colocado para quitarlo.';
+  hint.textContent = verbal
+    ? 'Los barcos no pueden tocarse: deja al menos una casilla libre entre ellos.'
+    : 'Selecciona un barco, haz clic en el tablero para colocarlo. Clic en un barco colocado para quitarlo.';
   placementLive.appendChild(hint);
   root.appendChild(placementLive);
-  patchPlacementUI(ctx);
+  patchPlacementUI(ctx, verbal);
 }
 
 function preview(grid, x, y) {

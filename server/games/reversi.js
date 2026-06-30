@@ -27,17 +27,6 @@ function collectFlips(board, r, c, player, opp) {
   return flips.length ? flips : null;
 }
 
-function legalMoves(board, player, opp) {
-  const moves = [];
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      const flips = collectFlips(board, r, c, player, opp);
-      if (flips) moves.push({ r, c, flips });
-    }
-  }
-  return moves;
-}
-
 function countDiscs(board) {
   let a = 0;
   let b = 0;
@@ -104,12 +93,14 @@ export default {
 
     const { r, c } = action;
     if (!inBounds(r, c)) return { error: 'Casilla no válida.' };
-    const opp = opponent(playerId, state);
-    const flips = collectFlips(state.board, r, c, state.colors[playerId], state.colors[opp]);
-    if (!flips) return { error: 'Jugada ilegal.' };
+    if (state.board[r][c] !== null) return { error: 'Casilla ocupada.' };
 
-    state.board[r][c] = state.colors[playerId];
-    for (const [fr, fc] of flips) state.board[fr][fc] = state.colors[playerId];
+    const opp = opponent(playerId, state);
+    const color = state.colors[playerId];
+    const flips = collectFlips(state.board, r, c, color, state.colors[opp]) || [];
+
+    state.board[r][c] = color;
+    for (const [fr, fc] of flips) state.board[fr][fc] = color;
     state.lastMove = { r, c, flips: flips.length, by: playerId };
     state.passes = 0;
     const idx = state.order.indexOf(playerId);
@@ -133,11 +124,11 @@ export default {
   bots(state, botIds) {
     if (state.status !== 'playing' || !botIds.has(state.turn)) return [];
     const me = state.turn;
-    if (!state.valid.length) return [{ playerId: me, action: { type: 'pass' } }];
+    if (!state.valid.length) return [];
     let best = state.valid[0];
     let bestScore = -Infinity;
     for (const m of state.valid) {
-      let score = m.flips.length * 2 + cornerScore(m.r, m.c);
+      let score = m.flips * 2 + cornerScore(m.r, m.c);
       if (m.r === 0 || m.r === SIZE - 1) {
         if (m.c === 1 || m.c === SIZE - 2) score -= 15;
       }
@@ -154,32 +145,28 @@ export default {
 };
 
 function refresh(state) {
-  const opp = opponent(state.turn, state);
-  state.valid = legalMoves(state.board, state.colors[state.turn], state.colors[opp]).map(({ r, c, flips }) => ({ r, c, flips: flips.length }));
-  if (!state.valid.length) {
-    const oppMoves = legalMoves(state.board, state.colors[opp], state.colors[state.turn]);
-    if (!oppMoves.length) {
-      state.status = 'finished';
-      const counts = countDiscs(state.board);
-      const b = state.order[0];
-      const w = state.order[1];
-      const cb = counts[state.colors[b]];
-      const cw = counts[state.colors[w]];
-      if (cb === cw) state.winner = null;
-      else state.winner = cb > cw ? b : w;
-    } else {
-      state.passes += 1;
-      if (state.passes >= 2) {
-        state.status = 'finished';
-        const counts = countDiscs(state.board);
-        const b = state.order[0];
-        const w = state.order[1];
-        const cb = counts[state.colors[b]];
-        const cw = counts[state.colors[w]];
-        if (cb === cw) state.winner = null;
-        else state.winner = cb > cw ? b : w;
-      }
+  const me = state.turn;
+  const opp = opponent(me, state);
+  const empty = [];
+  state.valid = [];
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (state.board[r][c] !== null) continue;
+      empty.push({ r, c });
+      const flips = collectFlips(state.board, r, c, state.colors[me], state.colors[opp]);
+      state.valid.push({ r, c, flips: flips ? flips.length : 0 });
     }
+  }
+
+  if (!empty.length) {
+    state.status = 'finished';
+    const counts = countDiscs(state.board);
+    const b = state.order[0];
+    const w = state.order[1];
+    const cb = counts[state.colors[b]];
+    const cw = counts[state.colors[w]];
+    if (cb === cw) state.winner = null;
+    else state.winner = cb > cw ? b : w;
   }
   return state;
 }

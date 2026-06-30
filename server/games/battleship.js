@@ -28,8 +28,9 @@ function validatePlacement(ships) {
   const got = ships.map((s) => (s.cells ? s.cells.length : -1)).sort((a, b) => a - b).join(',');
   if (expected !== got) return 'La flota no coincide con la plantilla.';
 
-  const occupied = new Set();
-  for (const ship of ships) {
+  const owner = new Map();
+  for (let si = 0; si < ships.length; si++) {
+    const ship = ships[si];
     const cells = ship.cells;
     if (!Array.isArray(cells) || cells.length < 1) return 'Barco no válido.';
     for (const c of cells) {
@@ -53,8 +54,22 @@ function validatePlacement(ships) {
     }
     for (const c of cells) {
       const k = key(c.x, c.y);
-      if (occupied.has(k)) return 'Los barcos se solapan.';
-      occupied.add(k);
+      if (owner.has(k)) return 'Los barcos se solapan.';
+      owner.set(k, si);
+    }
+  }
+
+  for (const [k, si] of owner) {
+    const [x, y] = k.split(',').map(Number);
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) continue;
+        const other = owner.get(key(nx, ny));
+        if (other !== undefined && other !== si) return 'Los barcos deben tener al menos una casilla de separación.';
+      }
     }
   }
   return null;
@@ -80,30 +95,21 @@ function shipStatusList(ships, incoming) {
   });
 }
 
-function countManualSunk(fleetHits = {}) {
-  return SHIP_TEMPLATE.filter((s) => (fleetHits[s.id] || 0) >= s.size).length;
-}
-
-function manualFleetStatus(fleetHits = {}) {
-  return SHIP_TEMPLATE.map((ship) => {
-    const hits = Math.max(0, Math.min(ship.size, fleetHits[ship.id] || 0));
-    return { id: ship.id, name: ship.name, size: ship.size, hits, sunk: hits >= ship.size };
-  });
-}
-
 function initManualPlayer() {
-  return { enemyMarks: {}, ownMarks: {}, fleetHits: {}, lastMark: null };
+  return { enemyMarks: {}, lastMark: null };
 }
 
 function initVerbal(players) {
+  const boards = {};
+  for (const p of players) boards[p.id] = { ships: null, ready: false, incoming: {} };
   const manual = {};
   for (const p of players) manual[p.id] = initManualPlayer();
   return {
     playMode: 'verbal',
-    phase: 'battle',
+    phase: 'placement',
+    boards,
     manual,
     order: players.map((p) => p.id),
-    turn: null,
     status: 'playing',
     winner: null,
   };
@@ -217,24 +223,29 @@ export default {
   view(state, playerId) {
     if (state.playMode === 'verbal') {
       const manual = state.manual[playerId] || initManualPlayer();
-      const fleetStatus = manualFleetStatus(manual.fleetHits);
+      const me = state.boards[playerId];
+      const enemyId = state.order.find((id) => id !== playerId);
+      const enemy = state.boards[enemyId];
+      const enemyMarks = manual.enemyMarks || {};
+      const myIncoming = me?.incoming || {};
       return {
         playMode: 'verbal',
         phase: state.phase,
         status: state.status,
         winner: state.winner,
         lastMark: manual.lastMark,
-        enemyMarks: manual.enemyMarks,
-        ownMarks: manual.ownMarks,
-        enemyFleetStatus: fleetStatus,
-        sunkEnemyShips: countManualSunk(manual.fleetHits),
-        totalEnemyShips: SHIP_TEMPLATE.length,
+        myReady: me?.ready ?? false,
+        enemyReady: enemy?.ready ?? false,
+        myShips: me?.ships ?? null,
+        myIncoming,
+        enemyMarks,
+        ownMarks: myIncoming,
         stats: {
-          enemyMiss: Object.values(manual.enemyMarks).filter((v) => v === 'miss').length,
-          enemyHit: Object.values(manual.enemyMarks).filter((v) => v === 'hit').length,
-          enemySunkCells: Object.values(manual.enemyMarks).filter((v) => v === 'sunk').length,
-          ownMiss: Object.values(manual.ownMarks).filter((v) => v === 'miss').length,
-          ownHit: Object.values(manual.ownMarks).filter((v) => v === 'hit' || v === 'sunk').length,
+          enemyMiss: Object.values(enemyMarks).filter((v) => v === 'miss').length,
+          enemyHit: Object.values(enemyMarks).filter((v) => v === 'hit').length,
+          enemySunkCells: Object.values(enemyMarks).filter((v) => v === 'sunk').length,
+          ownMiss: Object.values(myIncoming).filter((v) => v === 'miss').length,
+          ownHit: Object.values(myIncoming).filter((v) => v === 'hit' || v === 'sunk').length,
         },
       };
     }
@@ -330,69 +341,80 @@ export default {
 };
 
 function actionVerbal(state, playerId, action) {
+  if (action.type === 'placeShips') {
+    if (state.phase !== 'placement') return { error: 'Ya no puedes colocar barcos.' };
+    const err = validatePlacement(action.ships);
+    if (err) return { error: err };
+    const board = state.boards[playerId];
+    board.ships = action.ships.map((s, i) => ({
+      id: SHIP_TEMPLATE[i].id,
+      name: SHIP_TEMPLATE[i].name,
+      size: SHIP_TEMPLATE[i].size,
+      cells: s.cells.map((c) => ({ x: c.x, y: c.y })),
+    }));
+    board.ready = true;
+    if (state.order.every((id) => state.boards[id].ready)) {
+      state.phase = 'battle';
+    }
+    return { state };
+  }
+
   const manual = state.manual[playerId];
-  if (!manual) return { error: 'Jugador no encontrado.' };
+  const board = state.boards[playerId];
+  if (!manual || !board) return { error: 'Jugador no encontrado.' };
 
   if (action.type === 'markCell') {
-    const board = action.board === 'own' ? 'own' : 'enemy';
+    if (state.phase !== 'battle') return { error: 'Aún no empieza la batalla.' };
+    const which = action.board === 'own' ? 'own' : 'enemy';
     const { x, y } = action;
     if (typeof x !== 'number' || typeof y !== 'number' || x < 0 || y < 0 || x >= SIZE || y >= SIZE) {
       return { error: 'Coordenada no válida.' };
     }
     const k = key(x, y);
-    const target = board === 'enemy' ? manual.enemyMarks : manual.ownMarks;
     const mark = action.mark;
+    if (mark !== 'miss' && mark !== 'hit') return { error: 'Marca no válida.' };
 
-    if (mark === 'clear' || mark === null) {
-      delete target[k];
-    } else if (mark === 'miss' || mark === 'hit' || mark === 'sunk') {
-      target[k] = mark;
-    } else {
-      return { error: 'Marca no válida.' };
-    }
+    const target = which === 'enemy' ? manual.enemyMarks : board.incoming;
+    target[k] = mark;
 
-    manual.lastMark = {
-      board,
-      x,
-      y,
-      mark: target[k] || null,
-      coord: coordLabel(x, y),
-    };
+    manual.lastMark = { board: which, x, y, mark, coord: coordLabel(x, y) };
     return { state };
   }
 
-  if (action.type === 'markFleet') {
-    const ship = SHIP_TEMPLATE.find((s) => s.id === action.shipId);
-    if (!ship) return { error: 'Barco no válido.' };
-
-    if (action.mode === 'cycle') {
-      const cur = manual.fleetHits[ship.id] || 0;
-      const next = cur >= ship.size ? 0 : cur + 1;
-      if (next === 0) delete manual.fleetHits[ship.id];
-      else manual.fleetHits[ship.id] = next;
-    } else if (action.mode === 'sunk') {
-      manual.fleetHits[ship.id] = ship.size;
-    } else if (action.mode === 'clear') {
-      delete manual.fleetHits[ship.id];
-    } else if (typeof action.hits === 'number') {
-      const h = Math.max(0, Math.min(ship.size, Math.round(action.hits)));
-      if (h === 0) delete manual.fleetHits[ship.id];
-      else manual.fleetHits[ship.id] = h;
-    } else {
-      return { error: 'Acción de flota no válida.' };
+  if (action.type === 'sinkGroup') {
+    if (state.phase !== 'battle') return { error: 'Aún no empieza la batalla.' };
+    const which = action.board === 'own' ? 'own' : 'enemy';
+    const { x, y } = action;
+    if (typeof x !== 'number' || typeof y !== 'number' || x < 0 || y < 0 || x >= SIZE || y >= SIZE) {
+      return { error: 'Coordenada no válida.' };
     }
+    const marks = which === 'enemy' ? manual.enemyMarks : board.incoming;
+    const k = key(x, y);
+    if (marks[k] !== 'hit') return { error: 'Mantén pulsado sobre una casilla tocada.' };
+
+    const cluster = new Set();
+    const stack = [[x, y]];
+    while (stack.length) {
+      const [cx, cy] = stack.pop();
+      const ck = key(cx, cy);
+      if (marks[ck] !== 'hit' || cluster.has(ck)) continue;
+      cluster.add(ck);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = cx + dx;
+        const ny = cy + dy;
+        if (nx >= 0 && ny >= 0 && nx < SIZE && ny < SIZE && marks[key(nx, ny)] === 'hit') {
+          stack.push([nx, ny]);
+        }
+      }
+    }
+    for (const ck of cluster) marks[ck] = 'sunk';
+    manual.lastMark = { board: which, x, y, mark: 'sunk', coord: coordLabel(x, y) };
     return { state };
   }
 
   if (action.type === 'clearBoard') {
-    const board = action.board === 'own' ? 'own' : 'enemy';
-    if (board === 'enemy') manual.enemyMarks = {};
-    else manual.ownMarks = {};
-    return { state };
-  }
-
-  if (action.type === 'resetFleet') {
-    manual.fleetHits = {};
+    if (action.board === 'enemy') manual.enemyMarks = {};
+    else board.incoming = {};
     return { state };
   }
 
@@ -400,25 +422,19 @@ function actionVerbal(state, playerId, action) {
 }
 
 function randomPlacement() {
-  const occ = new Set();
   const ships = [];
   for (const sh of SHIP_TEMPLATE) {
     let placed = false;
-    for (let t = 0; t < 1000 && !placed; t++) {
+    for (let t = 0; t < 2000 && !placed; t++) {
       const horiz = Math.random() < 0.5;
       const x = Math.floor(Math.random() * (horiz ? SIZE - sh.size + 1 : SIZE));
       const y = Math.floor(Math.random() * (horiz ? SIZE : SIZE - sh.size + 1));
       const cells = [];
-      let ok = true;
       for (let i = 0; i < sh.size; i++) {
-        const cx = horiz ? x + i : x;
-        const cy = horiz ? y : y + i;
-        const k = key(cx, cy);
-        if (occ.has(k)) { ok = false; break; }
-        cells.push({ x: cx, y: cy });
+        cells.push({ x: horiz ? x + i : x, y: horiz ? y : y + i });
       }
-      if (ok) {
-        cells.forEach((c) => occ.add(key(c.x, c.y)));
+      const trial = [...ships, { cells }];
+      if (!validatePlacement(trial)) {
         ships.push({ cells });
         placed = true;
       }

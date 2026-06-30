@@ -8,15 +8,27 @@
 .rev-cell {
   aspect-ratio: 1; border-radius: 6px; border: 1px solid rgba(255,255,255,.08);
   background: rgba(21,128,61,.45); display: grid; place-items: center;
-  font-size: clamp(.9rem, 3vw, 1.2rem); padding: 0; transition: background .15s, transform .12s;
+  padding: 0; transition: background .15s, transform .12s;
 }
-.rev-cell.black { color: #0f172a; text-shadow: 0 1px 0 rgba(255,255,255,.25); }
-.rev-cell.white { color: #f8fafc; text-shadow: 0 0 8px rgba(255,255,255,.4); }
-.rev-cell.legal:not(:disabled) { background: rgba(74,222,128,.35); cursor: pointer; box-shadow: inset 0 0 0 2px #4ade80; }
-.rev-cell.legal:not(:disabled):hover { transform: scale(1.06); }
+.rev-disc {
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+  display: block;
+  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+}
+.rev-disc-black {
+  background: radial-gradient(circle at 35% 30%, #334155, #0f172a);
+  border: 1px solid rgba(255,255,255,.12);
+}
+.rev-disc-white {
+  background: radial-gradient(circle at 35% 30%, #ffffff, #cbd5e1);
+  border: 1px solid rgba(255,255,255,.5);
+}
+.rev-cell.playable:not(:disabled) { cursor: pointer; }
+.rev-cell.playable:not(:disabled):hover { background: rgba(21,128,61,.7); transform: scale(1.04); }
 .rev-cell.last { box-shadow: inset 0 0 0 2px #fbbf24; }
 .rev-hint { font-weight: 600; min-height: 1.2em; color: var(--muted); }
-.rev-pass { margin-top: 4px; }
 
 /* --- Mastermind --- */
 .mm-wrap { width: min(96vw, 420px); margin: 0 auto; }

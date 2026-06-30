@@ -657,6 +657,89 @@ input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px
 .bs-verbal-side-card h4 { margin: 0 0 8px; font-size: .9rem; color: #1e293b; }
 .bs-verbal-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 14px 0; }
 .bs-verbal-tip { text-align: center; font-size: .82rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+
+.bs-verbal-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: min(98vw, 420px);
+  margin: 0 auto;
+}
+
+.bs-verbal-layout .bs-section {
+  width: 100%;
+}
+
+.bs-verbal-layout .bs-board-wrap {
+  width: 100%;
+  max-width: min(92vw, 360px);
+  margin: 0 auto;
+}
+
+.bs-verbal-cell {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.bs-verbal-cell.ship:not(.hit-own):not(.miss-own):not(.sunk) {
+  background: linear-gradient(145deg, #94a3b8, #64748b);
+  border-color: #475569;
+}
+
+.bs-verbal-hold {
+  animation: bs-verbal-hold .2s ease;
+}
+
+@keyframes bs-verbal-hold {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.92); background: rgba(127,29,29,.35); }
+}
+
+.bs-verbal-pop {
+  position: absolute;
+  z-index: 40;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 12px 32px rgba(0,0,0,.5);
+  min-width: 120px;
+}
+
+.bs-verbal-pop-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-weight: 700;
+  font-size: .82rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.bs-verbal-pop-btn.miss {
+  background: rgba(56,189,248,.15);
+  color: #7dd3fc;
+}
+
+.bs-verbal-pop-btn.hit {
+  background: rgba(220,38,38,.15);
+  color: #fca5a5;
+}
+
+#game-stage[data-game="battleship"] {
+  position: relative;
+}
+
+.bs-verbal-place-hint {
+  text-align: center;
+  margin-bottom: 8px;
+}
 .bs-legend-verbal { min-width: 200px; }
 .bs-legend-hint { font-size: .72rem; color: #64748b; margin: -4px 0 10px; line-height: 1.35; text-align: center; }
 .bs-legend-name { font-size: .68rem; color: #64748b; max-width: 72px; line-height: 1.1; }

@@ -7,6 +7,10 @@ let liveRoot = null;
 let prevStatus = null;
 let prevLast = null;
 
+function discHtml(color) {
+  return `<span class="rev-disc rev-disc-${color === 'B' ? 'black' : 'white'}" aria-hidden="true"></span>`;
+}
+
 export default function render(ctx) {
   const { view, send, me, root } = ctx;
   const myTurn = view.turn === me && view.status === 'playing';
@@ -20,8 +24,7 @@ export default function render(ctx) {
     liveRoot.innerHTML = `
       <div class="rev-head"></div>
       <div class="rev-board-wrap"><div class="rev-board"></div></div>
-      <p class="rev-hint"></p>
-      <button type="button" class="btn btn-ghost rev-pass" hidden>Pasar turno</button>`;
+      <p class="rev-hint"></p>`;
     root.appendChild(liveRoot);
   }
 
@@ -32,7 +35,6 @@ export default function render(ctx) {
 
   const boardEl = liveRoot.querySelector('.rev-board');
   boardEl.innerHTML = '';
-  const validSet = new Set((view.valid || []).map((m) => `${m.r},${m.c}`));
 
   for (let r = 0; r < SIZE; r++) {
     for (let c = 0; c < SIZE; c++) {
@@ -42,14 +44,12 @@ export default function render(ctx) {
       const v = view.board[r][c];
       if (v === 'B') {
         cell.classList.add('black');
-        cell.textContent = '●';
+        cell.innerHTML = discHtml('B');
       } else if (v === 'W') {
         cell.classList.add('white');
-        cell.textContent = '●';
-      }
-      const key = `${r},${c}`;
-      if (validSet.has(key) && myTurn) {
-        cell.classList.add('legal');
+        cell.innerHTML = discHtml('W');
+      } else if (myTurn) {
+        cell.classList.add('playable');
         cell.addEventListener('click', () => send({ type: 'place', r, c }));
       } else {
         cell.disabled = true;
@@ -60,23 +60,18 @@ export default function render(ctx) {
   }
 
   const hint = liveRoot.querySelector('.rev-hint');
-  const passBtn = liveRoot.querySelector('.rev-pass');
   if (view.status === 'finished') {
     hint.textContent = view.winner === me ? '🎉 ¡Has ganado!' : view.winner ? '😬 Has perdido' : '🤝 Empate';
-    passBtn.hidden = true;
     if (prevStatus !== 'finished') {
       if (view.winner === me) { SFX.gameWin(ctx.meta.id); celebrate(liveRoot, '🎉', 36); }
       else if (view.winner) SFX.gameLose(ctx.meta.id);
       else SFX.draw();
     }
   } else if (myTurn) {
-    hint.textContent = view.valid.length ? '⚫ Elige casilla (verde = legal)' : 'Sin jugadas — debes pasar';
-    passBtn.hidden = !!view.valid.length;
-    passBtn.onclick = () => send({ type: 'pass' });
+    hint.textContent = '⚫ Toca una casilla vacía';
     inviteTurn(hint);
   } else {
     hint.textContent = `Turno de ${ctx.nameOf(view.turn)}`;
-    passBtn.hidden = true;
   }
 
   const lk = view.lastMove ? JSON.stringify(view.lastMove) : '';
